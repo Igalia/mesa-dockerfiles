@@ -23,10 +23,8 @@ RUN git clone git://anongit.freedesktop.org/piglit /root/piglit
 
 WORKDIR /root/piglit
 
-RUN git show --stat > /results/piglit-head.txt
-
-RUN cp /root/mesa-head.txt /results/
+RUN git show --stat > /root/piglit-head.txt
 
 RUN cmake . && make
 
-CMD [ "/bin/sh", "-c", "./piglit-run.py tests/all -x texcombine -x texCombine /results" ]
+CMD [ "/bin/sh", "-c", "cp /root/*head.txt /results && ./piglit-run.py tests/all -x texcombine -x texCombine /results" ]
