@@ -20,6 +20,10 @@ RUN git clone git://anongit.freedesktop.org/mesa/shader-db /root/shader-db
 
 WORKDIR /root/shader-db
 
+RUN git show --stat > /results/piglit-head.txt
+
+RUN cp /root/mesa-head.txt /results/
+
 RUN make
 
 CMD [ "/bin/sh", "-c", "./run shaders > /results/results.txt" ]
