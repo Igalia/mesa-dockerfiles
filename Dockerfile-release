@@ -3,11 +3,11 @@
 #
 # ~~~
 #  export MESA_RELEASE=17.0 && docker build . -f Dockerfile-release \
-#  --build-arg RELEASE=$MESA_RELEASE -t jasuarez/mesa-release:$MESA_RELEASE
+#  --build-arg RELEASE=$MESA_RELEASE -t igalia/mesa:$MESA_RELEASE
 # ~~~
 #
 
-FROM jasuarez/mesa-release:base
+FROM igalia/mesa:base
 
 MAINTAINER Juan A. Suarez Romero <jasuarez@igalia.com>
 

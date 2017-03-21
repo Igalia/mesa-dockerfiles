@@ -1,10 +1,10 @@
 #
 # This builds and installs Mesa, master.
 #
-#   `docker build . -f Dockerfile-master -t jasuarez/mesa-release:master`
+#   `docker build . -f Dockerfile-master -t igalia/mesa:master`
 #
 
-FROM jasuarez/mesa-release:base
+FROM igalia/mesa:base
 
 MAINTAINER Juan A. Suarez Romero <jasuarez@igalia.com>
 

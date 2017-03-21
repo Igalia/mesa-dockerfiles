@@ -1,14 +1,14 @@
 #
 # This builds and installs Mesa, master.
 #
-#   `docker build . -f Dockerfile-shader-db -t jasuarez/mesa-release:shader-db`
+#   `docker build . -f Dockerfile-shader-db -t igalia/mesa:shader-db`
 #
 # To run
 #
-#   `docker run --rm -v ~/my_results_dir/shader-db-$(date -u +%Y%m%d+%H%M):/results:Z --device=/dev/dri/renderD128 jasuarez/mesa-release:shader-db`
+#   `docker run --rm -v ~/my_results_dir/shader-db-$(date -u +%Y%m%d+%H%M):/results:Z --device=/dev/dri/renderD128 igalia/mesa:shader-db`
 #
 
-FROM jasuarez/mesa-release:master
+FROM igalia/mesa:master
 
 MAINTAINER Juan A. Suarez Romero <jasuarez@igalia.com>
 
