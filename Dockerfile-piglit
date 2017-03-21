@@ -1,0 +1,30 @@
+#
+# This builds and installs Mesa, master.
+#
+#   `docker build . -f Dockerfile-piglit -t jasuarez/mesa-release:piglit`
+#
+# To run
+#
+#   `docker run --privileged --rm -t -v ~/my_results_dir/piglit-all-$(date -u +%Y%m%d+%H%M):/results:Z  -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix jasuarez/mesa-release:piglit`
+#
+
+FROM jasuarez/mesa-release:master
+
+MAINTAINER Juan A. Suarez Romero <jasuarez@igalia.com>
+
+RUN apt-get update                                                      \
+  && apt-get -y install cmake libwaffle-dev libpng-dev libxkbcommon-dev \
+    libglu1-mesa-dev libegl1-mesa-dev                                   \
+  && rm -fr rm -rf /var/lib/apt/lists/*
+
+RUN pip install numpy
+
+RUN git clone git://anongit.freedesktop.org/piglit /root/piglit
+
+WORKDIR /root/piglit
+
+RUN git show --stat > /root/piglit-head.txt
+
+RUN cmake . && make
+
+CMD [ "/bin/sh", "-c", "./piglit-run.py tests/all /results" ]

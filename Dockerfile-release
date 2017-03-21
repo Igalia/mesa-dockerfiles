@@ -1,0 +1,33 @@
+#
+# This builds and installs Mesa, release branch.
+#
+# ~~~
+#  export MESA_RELEASE=17.0 && docker build . -f Dockerfile-release \
+#  --build-arg RELEASE=$MESA_RELEASE -t jasuarez/mesa-release:$MESA_RELEASE
+# ~~~
+#
+
+FROM jasuarez/mesa-release:base
+
+MAINTAINER Juan A. Suarez Romero <jasuarez@igalia.com>
+
+RUN apt-get update               \
+  && apt-get -y install git      \
+  && rm -fr rm -rf /var/lib/apt/lists/*
+
+ARG RELEASE
+
+RUN git clone https://github.com/Igalia/mesa -b wip/release/$RELEASE /root/mesa
+
+WORKDIR /root/mesa
+
+RUN git show --stat > /root/mesa-head.txt
+
+RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                                           \
+  --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                                       \
+  --with-gallium-drivers=i915,nouveau,r300,r600,freedreno,svga,swrast,vc4,virgl,etnaviv,imx     \
+  --prefix /usr                                                                                 \
+  && make                                                                                       \
+  && make distcheck                                                                             \
+  && make install                                                                               \
+  && rm -fr /root/mesa
