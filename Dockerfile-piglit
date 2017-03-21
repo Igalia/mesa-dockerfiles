@@ -29,4 +29,4 @@ RUN cp /root/mesa-head.txt /results/
 
 RUN cmake . && make
 
-CMD [ "/bin/sh", "-c", "./piglit-run.py tests/all /results" ]
+CMD [ "/bin/sh", "-c", "./piglit-run.py tests/all -x texcombine -x texCombine /results" ]
