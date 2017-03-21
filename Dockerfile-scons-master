@@ -1,0 +1,25 @@
+#
+# This builds and installs Mesa, master.
+#
+#   `docker build . -f Dockerfile-scons-master -t igalia/mesa:scons-master`
+#
+
+FROM igalia/mesa:base
+
+LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
+
+RUN apt-get update               \
+  && apt-get -y install git      \
+  && rm -fr rm -rf /var/lib/apt/lists/*
+
+RUN git clone git://anongit.freedesktop.org/git/mesa/mesa /root/mesa
+
+WORKDIR /root/mesa
+
+RUN git show --stat > /root/mesa-head.txt
+
+RUN scons llvm=1        \
+  && scons llvm=1 check \
+  && rm -fr /root/mesa
+
+WORKDIR /root

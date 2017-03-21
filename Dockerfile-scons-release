@@ -1,0 +1,28 @@
+#
+# This builds and installs Mesa, release branch.
+#
+# ~~~
+#  export MESA_RELEASE=17.0 && docker build . -f Dockerfile-scons-release \
+#  --build-arg RELEASE=$MESA_RELEASE -t igalia/mesa:scons-$MESA_RELEASE
+# ~~~
+#
+
+FROM igalia/mesa:base
+
+LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
+
+RUN apt-get update               \
+  && apt-get -y install git      \
+  && rm -fr rm -rf /var/lib/apt/lists/*
+
+ARG RELEASE
+
+RUN git clone https://github.com/Igalia/mesa -b wip/release/$RELEASE /root/mesa
+
+WORKDIR /root/mesa
+
+RUN git show --stat > /root/mesa-head.txt
+
+RUN scons llvm=1        \
+  && scons llvm=1 check \
+  && rm -fr /root/mesa
