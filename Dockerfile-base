@@ -15,7 +15,7 @@ RUN apt-get update                                                              
     clang bison flex python-pip libpthread-stubs0-dev wget libxau-dev libx11-dev        \
     libxext-dev libxdamage-dev libx11-xcb-dev gettext zlib1g-dev scons                  \
     libelf-dev libxvmc-dev libvdpau-dev libva-dev libclc-dev libclang-3.9-dev           \
-    libpciaccess-dev                                                                    \
+    libpciaccess-dev libxxf86vm-dev                                                     \
     libxcb-dri3-dev libxcb-present-dev libxcb-glx0-dev libxcb-dri2-0-dev                \
     xutils-dev                                                                          \
   && rm -fr rm -rf /var/lib/apt/lists/*
