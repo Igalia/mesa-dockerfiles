@@ -10,7 +10,7 @@
 
 FROM igalia/mesa:master
 
-MAINTAINER Juan A. Suarez Romero <jasuarez@igalia.com>
+LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
 RUN apt-get update                              \
   && apt-get -y install python3 libepoxy-dev    \
