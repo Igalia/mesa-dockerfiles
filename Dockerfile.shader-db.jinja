@@ -1,14 +1,19 @@
 #
-# This builds and installs Mesa, master.
+# This builds and installs Shader-DB. Requires `docker-jinja`.
 #
-#   `docker build . -f Dockerfile-shader-db -t igalia/mesa:shader-db`
+# ~~~
+#  export MESA_RELEASE=master	# master, 17.0
+#  dj -d Dockerfile.shader-db.jinja -o Dockerfile.shader-db -e RELEASE=$MESA_RELEASE
+#  docker build . -f Dockerfiler.shader-db -t igalia/mesa:shader-db
+#  rm Dockefile.shader-db
+# ~~~
 #
 # To run
 #
 #   `docker run --rm -v ~/my_results_dir/shader-db-$(date -u +%Y%m%d+%H%M):/results:Z --device=/dev/dri/renderD128 igalia/mesa:shader-db`
 #
 
-FROM igalia/mesa:master
+FROM igalia/mesa:{{ RELEASE }}
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 

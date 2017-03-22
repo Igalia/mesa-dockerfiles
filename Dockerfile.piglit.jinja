@@ -1,14 +1,19 @@
 #
-# This builds and installs Mesa, master.
+# This builds and installs Piglit. Requires `docker-jinja`.
 #
-#   `docker build . -f Dockerfile-piglit -t igalia/mesa:piglit`
+# ~~~
+#  export MESA_RELEASE=master	# master, 17.0
+#  dj -d Dockerfile.piglit.jinja -o Dockerfile.piglit -e RELEASE=$MESA_RELEASE
+#  docker build . -f Dockerfile.piglit -t igalia/mesa:piglit
+#  rm Dockerfile.piglit
+# ~~~
 #
 # To run
 #
 #   `docker run --privileged --rm -t -v ~/my_results_dir/piglit-all-$(date -u +%Y%m%d+%H%M):/results:Z  -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix igalia/mesa:piglit`
 #
 
-FROM igalia/mesa:master
+FROM igalia/mesa:{{ RELEASE }}
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
