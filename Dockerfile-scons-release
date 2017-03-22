@@ -17,7 +17,7 @@ RUN apt-get update               \
 
 ARG RELEASE
 
-RUN git clone https://github.com/Igalia/mesa -b wip/release/$RELEASE /root/mesa
+RUN git clone https://github.com/Igalia/release-mesa -b igalia/$RELEASE /root/mesa
 
 WORKDIR /root/mesa
 
