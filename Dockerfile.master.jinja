@@ -1,7 +1,10 @@
 #
 # This builds and installs Mesa, master.
 #
-#   `docker build . -f Dockerfile-master -t igalia/mesa:master`
+# ~~~
+#  dj -d Dockerfile.master.jinja -o Dockerfile.master -e BUILD=scons	# scons, autotools
+#  docker build . -f Dockerfile.master -t igalia/mesa:master
+#  rm Dockerfile.master
 #
 
 FROM igalia/mesa:base
@@ -18,6 +21,11 @@ WORKDIR /root/mesa
 
 RUN git show --stat > /root/mesa-head.txt
 
+{% if BUILD == "scons" %}
+RUN scons llvm=1        \
+  && scons llvm=1 check \
+  && rm -fr /root/mesa
+{% else %}
 RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                                           \
   --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                                       \
   --with-gallium-drivers=i915,nouveau,r300,r600,freedreno,svga,swrast,vc4,virgl,etnaviv,imx     \
@@ -25,5 +33,6 @@ RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                           
   && make check                                                                                 \
   && make install                                                                               \
   && rm -fr /root/mesa
+{% endif %}
 
 WORKDIR /root
