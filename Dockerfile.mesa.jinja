@@ -34,7 +34,7 @@ RUN scons llvm=1        \
 {% else %}
 RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                                           \
   --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                                       \
-  --with-gallium-drivers=i915,nouveau,r300,r600,freedreno,svga,swrast,vc4,virgl,etnaviv,imx     \
+  --with-gallium-drivers=i915,nouveau,r300,r600,freedreno,svga,swrast,vc4,virgl{% if RELEASE != "13.0" %},etnaviv,imx{% endif %}        \
   && make                                                                                       \
   && make check                                                                                 \
   {% if RELEASE != "master" %} && make distcheck {% endif %}					\
