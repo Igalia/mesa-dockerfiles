@@ -15,7 +15,7 @@ LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
 RUN apt-get update               \
   && apt-get -y install git      \
-  && rm -fr rm -rf /var/lib/apt/lists/*
+  && rm -fr /var/lib/apt/lists/*
 
 {% if RELEASE == "master" %}
 RUN git clone git://anongit.freedesktop.org/git/mesa/mesa /root/mesa

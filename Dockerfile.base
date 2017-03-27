@@ -18,7 +18,7 @@ RUN apt-get update                                                              
     libpciaccess-dev libxxf86vm-dev                                                     \
     libxcb-dri3-dev libxcb-present-dev libxcb-glx0-dev libxcb-dri2-0-dev                \
     xutils-dev                                                                          \
-  && rm -fr rm -rf /var/lib/apt/lists/*
+  && rm -fr /var/lib/apt/lists/*
 
 RUN ln -sf /usr/lib/llvm-3.9/bin/llvm-config /usr/bin/llvm-config
 

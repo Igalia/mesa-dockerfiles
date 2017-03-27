@@ -19,7 +19,7 @@ LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
 RUN apt-get update                              \
   && apt-get -y install python3 libepoxy-dev    \
-  && rm -fr rm -rf /var/lib/apt/lists/*
+  && rm -fr /var/lib/apt/lists/*
 
 RUN git clone git://anongit.freedesktop.org/mesa/shader-db /root/shader-db
 

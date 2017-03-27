@@ -20,7 +20,7 @@ LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 RUN apt-get update                                                      \
   && apt-get -y install cmake libwaffle-dev libpng-dev libxkbcommon-dev \
     libglu1-mesa-dev libegl1-mesa-dev                                   \
-  && rm -fr rm -rf /var/lib/apt/lists/*
+  && rm -fr /var/lib/apt/lists/*
 
 RUN pip install numpy
 
