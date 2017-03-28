@@ -3,7 +3,7 @@
 #
 # ~~~
 #  export MESA_RELEASE=master	# master, 17.0
-#  dj -d Dockerfile.piglit.jinja -o Dockerfile.piglit -e RELEASE=$MESA_RELEASE
+#  dj -d Dockerfile.piglit.jinja -o Dockerfile.piglit -e RELEASE=$MESA_RELEASE -e BUILDJOBS=2
 #  docker build -f Dockerfile.piglit -t igalia/mesa:piglit .
 #  rm Dockerfile.piglit
 # ~~~
@@ -30,6 +30,6 @@ WORKDIR /root/piglit
 
 RUN git show --stat > /root/piglit-head.txt
 
-RUN cmake . && make
+RUN cmake . && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %}
 
 CMD [ "/bin/sh", "-c", "cp /root/*head.txt /results && ./piglit-run.py tests/all -x texcombine -x texCombine /results" ]

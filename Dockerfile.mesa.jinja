@@ -5,6 +5,7 @@
 #  dj -d Dockerfile.mesa.jinja -o Dockerfile.mesa  \
 #    -e BUILD=autotools	  # scons, autotools	   \
 #    -e RELEASE=master	  # master, wip/17.0, wip/13.0
+#    [-e BUILDJOBS=2]       # -j 2,3,... for make
 #  docker build -f Dockerfile.mesa -t igalia/mesa:master .
 #  rm Dockerfile.mesa
 #
@@ -28,16 +29,16 @@ WORKDIR /root/mesa
 RUN git show --stat > /root/mesa-head.txt
 
 {% if BUILD == "scons" %}
-RUN scons llvm=1        \
-  && scons llvm=1 check \
+RUN scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1        \
+  && scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1 check \
   && rm -fr /root/mesa
 {% else %}
 RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                                           \
   --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                                       \
-  --with-gallium-drivers=i915,nouveau,r300,r600,freedreno,svga,swrast,vc4,virgl{% if "13.0" not in RELEASE %},etnaviv,imx{% endif %}        \
-  && make                                                                                       \
-  && make check                                                                                 \
-  {% if RELEASE != "master" %} && make distcheck {% endif %}					\
+  --with-gallium-drivers=i915,nouveau,r300,r600,freedreno,svga,swrast,vc4,virgl{% if "13.0" not in RELEASE %},etnaviv,imx{% endif %}    \
+  && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %}                                     \
+  && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} check                               \
+  {% if RELEASE != "master" %} && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} distcheck {% endif %}                          \
   && make install                                                                               \
   && rm -fr /root/mesa
 {% endif %}
