@@ -1,0 +1,38 @@
+#
+# This builds and installs Mesa.
+#
+# ~~~
+#  dj -d Dockerfile.mesa.travis.jinja -o Dockerfile.mesa.travis  \
+#    -e BUILD=autotools	  # scons, autotools	                 \
+#  docker build -f Dockerfile.mesa.travis -t igalia/mesa:master .
+#
+
+FROM igalia/mesa:base
+
+LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
+
+RUN apt-get update               \
+  && apt-get -y install git      \
+  && rm -fr /var/lib/apt/lists/*
+
+ADD . /root/mesa
+
+WORKDIR /root/mesa
+
+RUN git show --stat > /root/mesa-head.txt
+
+{% if BUILD == "scons" %}
+RUN scons -j 2 llvm=1        \
+  && scons -j 2 llvm=1 check \
+  && rm -fr /root/mesa
+{% else %}
+RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                                           \
+  --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                                       \
+  --with-gallium-drivers=i915,nouveau,r300,r600,freedreno,svga,swrast,vc4,virgl,etnaviv,imx     \
+  && make -j2                                                                                   \
+  && make check -j2                                                                             \
+  && make install -j2                                                                           \
+  && rm -fr /root/mesa
+{% endif %}
+
+WORKDIR /root
