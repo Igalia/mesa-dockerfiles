@@ -13,8 +13,8 @@ FROM igalia/mesa:base
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
-RUN apt-get update               \
-  && apt-get -y install git      \
+RUN apt-get update                                      \
+  && apt-get -y --no-install-recommends install git     \
   && rm -fr /var/lib/apt/lists/*
 
 {% if RELEASE == "master" %}

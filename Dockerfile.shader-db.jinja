@@ -17,8 +17,9 @@ FROM igalia/mesa:{{ RELEASE }}
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
-RUN apt-get update                              \
-  && apt-get -y install python3 libepoxy-dev    \
+RUN apt-get update                                      \
+  && apt-get -y --no-install-recommends install python3 \
+  libepoxy-dev                                          \
   && rm -fr /var/lib/apt/lists/*
 
 RUN git clone git://anongit.freedesktop.org/mesa/shader-db /root/shader-db

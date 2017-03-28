@@ -11,13 +11,13 @@ LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 WORKDIR /root
 
 RUN apt-get update                                                                      \
-  && apt-get -y install llvm-3.9 autoconf pkg-config clang-3.9 llvm libtool-bin         \
-    clang bison flex python-pip libpthread-stubs0-dev wget libxau-dev libx11-dev        \
-    libxext-dev libxdamage-dev libx11-xcb-dev gettext zlib1g-dev scons                  \
-    libelf-dev libxvmc-dev libvdpau-dev libva-dev libclc-dev libclang-3.9-dev           \
-    libpciaccess-dev libxxf86vm-dev                                                     \
-    libxcb-dri3-dev libxcb-present-dev libxcb-glx0-dev libxcb-dri2-0-dev                \
-    xutils-dev                                                                          \
+  && apt-get --no-install-recommends -y install llvm-3.9 autoconf pkg-config clang-3.9  \
+    llvm llvm-3.9-dev libtool-bin clang bison flex python-pip libpthread-stubs0-dev     \
+    wget libxau-dev libx11-dev libxext-dev libxdamage-dev libx11-xcb-dev gettext        \
+    zlib1g-dev scons libelf-dev libxvmc-dev libvdpau-dev libva-dev libclc-dev           \
+    libclang-3.9-dev libpciaccess-dev libxxf86vm-dev python-setuptools python-wheel     \
+    bzip2 make mesa-common-dev libxcb-dri3-dev libxcb-present-dev libxcb-glx0-dev       \
+    libxcb-dri2-0-dev xutils-dev libexpat1-dev automake xz-utils                        \
   && rm -fr /var/lib/apt/lists/*
 
 RUN ln -sf /usr/lib/llvm-3.9/bin/llvm-config /usr/bin/llvm-config
