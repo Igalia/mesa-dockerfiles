@@ -4,7 +4,7 @@
 # ~~~
 #  dj -d Dockerfile.mesa.jinja -o Dockerfile.mesa  \
 #    -e BUILD=autotools	  # scons, autotools	   \
-#    -e RELEASE=master	  # master, 17.0, 13.0
+#    -e RELEASE=master	  # master, wip/17.0, wip/13.0
 #  docker build -f Dockerfile.mesa -t igalia/mesa:master .
 #  rm Dockerfile.mesa
 #
@@ -20,7 +20,7 @@ RUN apt-get update               \
 {% if RELEASE == "master" %}
 RUN git clone git://anongit.freedesktop.org/git/mesa/mesa /root/mesa
 {% else %}
-RUN git clone https://github.com/Igalia/release-mesa -b igalia/{{ RELEASE }} /root/mesa
+RUN git clone https://github.com/Igalia/release-mesa -b {{ RELEASE }} /root/mesa
 {% endif %}
 
 WORKDIR /root/mesa
@@ -34,7 +34,7 @@ RUN scons llvm=1        \
 {% else %}
 RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                                           \
   --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                                       \
-  --with-gallium-drivers=i915,nouveau,r300,r600,freedreno,svga,swrast,vc4,virgl{% if RELEASE != "13.0" %},etnaviv,imx{% endif %}        \
+  --with-gallium-drivers=i915,nouveau,r300,r600,freedreno,svga,swrast,vc4,virgl{% if "13.0" not in RELEASE %},etnaviv,imx{% endif %}        \
   && make                                                                                       \
   && make check                                                                                 \
   {% if RELEASE != "master" %} && make distcheck {% endif %}					\
