@@ -2,8 +2,8 @@
 # This builds and installs Mesa.
 #
 # ~~~
-#  dj -d Dockerfile.mesa.jinja -o Dockerfile.mesa  \
-#    -e BUILD=autotools	  # scons, autotools	   \
+#  dj -d Dockerfile.mesa.jinja -o Dockerfile.mesa       \
+#    -e BUILD=autotools	  # scons, autotools, distcheck \
 #    -e RELEASE=master	  # master, wip/17.0, wip/13.0
 #    [-e BUILDJOBS=2]       # -j 2,3,... for make
 #  docker build . -f Dockerfile.mesa -t igalia/mesa:master
@@ -36,14 +36,17 @@ ENV PATH=/usr/lib/llvm-3.9/bin:$PATH
 RUN scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1        \
   && scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1 check \
   && sudo rm -fr /home/local/mesa
+{% elif BUILD == "distcheck" %}
+RUN ./autogen.sh                                                        \
+  && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} distcheck   \
+  && sudo rm -fr /home/local/mesa
 {% else %}
-RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                                           \
-  --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                                       \
+RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                           \
+  --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                       \
   --with-gallium-drivers=i915,nouveau,r300,r600,freedreno,svga,swrast,vc4,virgl{% if "13.0" not in RELEASE %},etnaviv,imx{% endif %}    \
-  && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %}                                     \
-  && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} check                               \
-  {% if RELEASE != "master" %} && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} distcheck {% endif %}                          \
-  && sudo make install                                                                               \
+  && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %}                      \
+  && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} check                \
+  && sudo make install                                                           \
   && sudo rm -fr /home/local/mesa
 {% endif %}
 
