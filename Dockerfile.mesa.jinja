@@ -4,7 +4,7 @@
 # ~~~
 #  dj -d Dockerfile.mesa.jinja -o Dockerfile.mesa       \
 #    -e BUILD=autotools	  # scons, autotools, distcheck \
-#    -e RELEASE=master	  # master, wip/17.0, wip/13.0
+#    [-e RELEASE=master]  # master, wip/17.0, wip/13.0
 #    [-e BUILDJOBS=2]       # -j 2,3,... for make
 #  docker build . -f Dockerfile.mesa -t igalia/mesa:master
 #  rm Dockerfile.mesa
@@ -20,10 +20,10 @@ RUN apt-get update                                      \
 
 USER local
 
-{% if RELEASE == "master" %}
-RUN git clone git://anongit.freedesktop.org/git/mesa/mesa /home/local/mesa
-{% else %}
+{% if RELEASE %}
 RUN git clone https://github.com/Igalia/release-mesa -b {{ RELEASE }} /home/local/mesa
+{% else %}
+ADD . /home/local/mesa
 {% endif %}
 
 WORKDIR /home/local/mesa
