@@ -2,8 +2,8 @@
 # This builds and installs Shader-DB. Requires `docker-jinja`.
 #
 # ~~~
-#  export MESA_RELEASE=master	# master, 17.0
-#  dj -d Dockerfile.shader-db.jinja -o Dockerfile.shader-db -e RELEASE=$MESA_RELEASE
+#  dj -d Dockerfile.shader-db.jinja -o Dockerfile.shader-db \
+#    -e RELEASE=master   # master, 17.0, 13.0
 #  docker build . -f Dockerfile.shader-db -t igalia/mesa:shader-db
 #  rm Dockefile.shader-db
 # ~~~

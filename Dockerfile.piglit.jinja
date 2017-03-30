@@ -2,8 +2,9 @@
 # This builds and installs Piglit. Requires `docker-jinja`.
 #
 # ~~~
-#  export MESA_RELEASE=master	# master, 17.0
-#  dj -d Dockerfile.piglit.jinja -o Dockerfile.piglit -e RELEASE=$MESA_RELEASE -e BUILDJOBS=2
+#  dj -d Dockerfile.piglit.jinja -o Dockerfile.piglit \
+#    -e RELEASE=master   # master, 17.0, 13.0
+#    [-e BUILDJOBS=2]    # -j 2,3,... for make
 #  docker build . -f Dockerfile.piglit -t igalia/mesa:piglit
 #  rm Dockerfile.piglit
 # ~~~
