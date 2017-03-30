@@ -22,7 +22,7 @@ RUN apt-get update                                                      \
     libpng-dev libxkbcommon-dev libglu1-mesa-dev libegl1-mesa-dev       \
   && rm -fr /var/lib/apt/lists/*
 
-RUN pip install numpy
+RUN pip install numpy six
 
 RUN git clone git://anongit.freedesktop.org/piglit /root/piglit
 
