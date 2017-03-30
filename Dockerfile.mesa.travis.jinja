@@ -4,7 +4,7 @@
 # ~~~
 #  dj -d Dockerfile.mesa.travis.jinja -o Dockerfile.mesa.travis  \
 #    -e BUILD=autotools	  # scons, autotools	                 \
-#  docker build -f Dockerfile.mesa.travis -t igalia/mesa:master .
+#  docker build . -f Dockerfile.mesa.travis -t igalia/mesa:master
 #
 
 FROM igalia/mesa:base
