@@ -28,6 +28,8 @@ WORKDIR /root/mesa
 
 RUN git show --stat > /root/mesa-head.txt
 
+ENV PATH=/usr/lib/llvm-3.9/bin:$PATH
+
 {% if BUILD == "scons" %}
 RUN scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1        \
   && scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1 check \

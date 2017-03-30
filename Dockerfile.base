@@ -10,17 +10,15 @@ LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
 WORKDIR /root
 
-RUN apt-get update                                                                      \
-  && apt-get --no-install-recommends -y install llvm-3.9 autoconf pkg-config clang-3.9  \
-    llvm llvm-3.9-dev libtool-bin clang bison flex python-pip libpthread-stubs0-dev     \
-    wget libxau-dev libx11-dev libxext-dev libxdamage-dev libx11-xcb-dev gettext        \
-    zlib1g-dev scons libelf-dev libxvmc-dev libvdpau-dev libva-dev libclc-dev           \
-    libclang-3.9-dev libpciaccess-dev libxxf86vm-dev python-setuptools python-wheel     \
-    bzip2 make mesa-common-dev libxcb-dri3-dev libxcb-present-dev libxcb-glx0-dev       \
-    libxcb-dri2-0-dev xutils-dev libexpat1-dev automake xz-utils                        \
+RUN apt-get update                                                                     \
+  && apt-get --no-install-recommends -y install llvm-3.9 libclang-3.9-dev autoconf     \
+    pkg-config llvm-3.9-dev libtool-bin bison flex python-pip libpthread-stubs0-dev    \
+    wget libxau-dev libx11-dev libxext-dev libxdamage-dev libx11-xcb-dev gettext       \
+    zlib1g-dev scons libelf-dev libxvmc-dev libvdpau-dev libva-dev libclc-dev          \
+    libpciaccess-dev libxxf86vm-dev python-setuptools python-wheel bzip2 make          \
+    mesa-common-dev libxcb-dri3-dev libxcb-present-dev libxcb-glx0-dev xutils-dev      \
+    libxcb-dri2-0-dev libexpat1-dev automake xz-utils gcc g++                          \
   && rm -fr /var/lib/apt/lists/*
-
-RUN ln -sf /usr/lib/llvm-3.9/bin/llvm-config /usr/bin/llvm-config
 
 RUN pip install mako
 
