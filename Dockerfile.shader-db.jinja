@@ -10,7 +10,10 @@
 #
 # To run
 #
-#   `docker run --rm -v ~/my_results_dir/shader-db-$(date -u +%Y%m%d+%H%M):/results:Z --device=/dev/dri/renderD128 igalia/mesa:shader-db`
+# ~~~
+#   mkdir -p -m 0777 ~/my_results_dir
+#   docker run --rm -v ~/my_results_dir:/results:Z --device=/dev/dri/renderD128 igalia/mesa:shader-db
+# ~~~
 #
 
 FROM igalia/mesa:{{ RELEASE }}
@@ -22,12 +25,20 @@ RUN apt-get update                                      \
   libepoxy-dev                                          \
   && rm -fr /var/lib/apt/lists/*
 
-RUN git clone git://anongit.freedesktop.org/mesa/shader-db /root/shader-db
+# 44 is the gid for outside's video group. Required to access to
+# /dev/dri/renderD128
+RUN usermod -G 44 -a local
 
-WORKDIR /root/shader-db
+USER local
 
-RUN git show --stat > /root/piglit-head.txt
+RUN git clone git://anongit.freedesktop.org/mesa/shader-db /home/local/shader-db
+
+WORKDIR /home/local/shader-db
+
+RUN git show --stat > /home/local/piglit-head.txt
 
 RUN make
 
-CMD [ "/bin/sh", "-c", "cp /root/*head.txt /results && ./run shaders > /results/results.txt" ]
+VOLUME /results
+
+CMD [ "/bin/sh", "-c", "cp /home/local/*head.txt /results && ./run shaders > /results/results.txt" ]

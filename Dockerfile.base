@@ -8,8 +8,6 @@ FROM debian:unstable
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
-WORKDIR /root
-
 RUN apt-get update                                                                     \
   && apt-get --no-install-recommends -y install llvm-3.9 libclang-3.9-dev autoconf     \
     pkg-config llvm-3.9-dev libtool-bin bison flex python-pip libpthread-stubs0-dev    \
@@ -17,79 +15,87 @@ RUN apt-get update                                                              
     zlib1g-dev scons libelf-dev libxvmc-dev libvdpau-dev libva-dev libclc-dev          \
     libpciaccess-dev libxxf86vm-dev python-setuptools python-wheel bzip2 make          \
     mesa-common-dev libxcb-dri3-dev libxcb-present-dev libxcb-glx0-dev xutils-dev      \
-    libxcb-dri2-0-dev libexpat1-dev automake xz-utils gcc g++                          \
+    libxcb-dri2-0-dev libexpat1-dev automake xz-utils gcc g++ sudo                     \
   && rm -fr /var/lib/apt/lists/*
 
 RUN pip install mako
+
+RUN adduser --gecos "" local && passwd -d local && adduser local sudo
+
+USER local
+
+WORKDIR /home/local
 
 RUN wget http://xorg.freedesktop.org/releases/individual/proto/glproto-1.4.14.tar.bz2   \
   && tar -jxvf glproto-1.4.14.tar.bz2                                                   \
   && rm glproto-1.4.14.tar.bz2                                                          \
   && cd glproto-1.4.14                                                                  \
   && ./configure                                                                        \
-  && make install                                                                       \
-  && rm -fr ../glproto-1.4.14
+  && sudo make install                                                                  \
+  && sudo rm -fr ../glproto-1.4.14
 
 RUN wget http://xorg.freedesktop.org/releases/individual/proto/dri2proto-2.8.tar.bz2    \
   && tar -jxvf dri2proto-2.8.tar.bz2                                                    \
   && rm dri2proto-2.8.tar.bz2                                                           \
   && cd dri2proto-2.8                                                                   \
   && ./configure                                                                        \
-  && make install                                                                       \
-  && rm -fr ../dri2proto-2.8
+  && sudo make install                                                                  \
+  && sudo rm -fr ../dri2proto-2.8
 
 RUN wget http://xorg.freedesktop.org/releases/individual/proto/dri3proto-1.0.tar.bz2    \
   && tar -jxvf dri3proto-1.0.tar.bz2                                                    \
   && rm dri3proto-1.0.tar.bz2                                                           \
   && cd dri3proto-1.0                                                                   \
   && ./configure                                                                        \
-  && make install                                                                       \
-  && rm -fr ../dri3proto-1.0
+  && sudo make install                                                                  \
+  && sudo rm -fr ../dri3proto-1.0
 
 RUN wget http://xorg.freedesktop.org/releases/individual/proto/presentproto-1.0.tar.bz2 \
   && tar -jxvf presentproto-1.0.tar.bz2                                                 \
   && rm presentproto-1.0.tar.bz2                                                        \
   && cd presentproto-1.0                                                                \
   && ./configure                                                                        \
-  && make install                                                                       \
-  && rm -fr ../presentproto-1.0
+  && sudo make install                                                                  \
+  && sudo rm -fr ../presentproto-1.0
 
 # RUN wget http://xcb.freedesktop.org/dist/xcb-proto-1.11.tar.bz2 \
 #   && tar -jxvf xcb-proto-1.11.tar.bz2                           \
 #   && rm xcb-proto-1.11.tar.bz2                                  \
 #   && cd xcb-proto-1.11                                          \
 #   && ./configure                                                \
-#   && make install                                               \
-#   && rm -fr ../xcb-proto-1.11
+#   && sudo make install                                          \
+#   && sudo rm -fr ../xcb-proto-1.11
 
 # RUN wget http://xcb.freedesktop.org/dist/libxcb-1.11.tar.bz2    \
 #   && tar -jxvf libxcb-1.11.tar.bz2                              \
 #   && rm libxcb-1.11.tar.bz2                                     \
 #   && cd libxcb-1.11                                             \
 #   && ./configure                                                \
-#   && make install                                               \
-#   && rm -fr ../libxcb-1.11
+#   && sudo make install                                          \
+#   && sudo rm -fr ../libxcb-1.11
 
 RUN wget http://xorg.freedesktop.org/releases/individual/lib/libxshmfence-1.1.tar.bz2   \
   && tar -jxvf libxshmfence-1.1.tar.bz2                                                 \
   && rm libxshmfence-1.1.tar.bz2                                                        \
   && cd libxshmfence-1.1                                                                \
   && ./configure                                                                        \
-  && make install                                                                       \
-  && rm -fr ../libxshmfence-1.1
+  && sudo make install                                                                  \
+  && sudo rm -fr ../libxshmfence-1.1
 
 RUN wget http://dri.freedesktop.org/libdrm/libdrm-2.4.75.tar.bz2                                        \
   && tar -jxvf libdrm-2.4.75.tar.bz2                                                                    \
   && rm libdrm-2.4.75.tar.bz2                                                                           \
   && cd libdrm-2.4.75                                                                                   \
   && ./configure --enable-freedreno --enable-vc4 --enable-etnaviv-experimental-api                      \
-  && make install                                                                                       \
-  && rm -fr ../libdrm-2.4.75
+  && sudo make install                                                                                  \
+  && sudo rm -fr ../libdrm-2.4.75
 
 RUN wget https://people.freedesktop.org/~cbrill/libtxc_dxtn/libtxc_dxtn-1.0.1.tar.bz2   \
   && tar -jxvf libtxc_dxtn-1.0.1.tar.bz2                                                \
   && rm libtxc_dxtn-1.0.1.tar.bz2                                                       \
   && cd libtxc_dxtn-1.0.1                                                               \
   && ./configure                                                                        \
-  && make install                                                                       \
-  && rm -fr ../libtxc_dxtn-1.0.1
+  && sudo make install                                                                  \
+  && sudo rm -fr ../libtxc_dxtn-1.0.1
+
+USER root

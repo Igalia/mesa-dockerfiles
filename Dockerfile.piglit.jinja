@@ -10,7 +10,10 @@
 #
 # To run
 #
-#   `docker run --privileged --rm -t -v ~/my_results_dir/piglit-all-$(date -u +%Y%m%d+%H%M):/results:Z  -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix igalia/mesa:piglit`
+# ~~~
+#   mkdir -p -m 0777 ~/my_results_dir
+#   docker run --privileged --rm -t -v ~/my_results_dir:/results:Z  -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix igalia/mesa:piglit
+# ~~~
 #
 
 FROM igalia/mesa:{{ RELEASE }}
@@ -24,12 +27,16 @@ RUN apt-get update                                                      \
 
 RUN pip install numpy six
 
-RUN git clone git://anongit.freedesktop.org/piglit /root/piglit
+USER local
 
-WORKDIR /root/piglit
+RUN git clone git://anongit.freedesktop.org/piglit /home/local/piglit
 
-RUN git show --stat > /root/piglit-head.txt
+WORKDIR /home/local/piglit
+
+RUN git show --stat > /home/local/piglit-head.txt
 
 RUN cmake . && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %}
 
-CMD [ "/bin/sh", "-c", "cp /root/*head.txt /results && ./piglit-run.py tests/all -x texcombine -x texCombine /results" ]
+VOLUME /results
+
+CMD [ "/bin/sh", "-c", "cp /home/local/*head.txt /results && ./piglit-run.py tests/all -x texcombine -x texCombine /results" ]

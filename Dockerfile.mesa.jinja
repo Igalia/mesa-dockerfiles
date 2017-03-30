@@ -18,22 +18,24 @@ RUN apt-get update                                      \
   && apt-get -y --no-install-recommends install git     \
   && rm -fr /var/lib/apt/lists/*
 
+USER local
+
 {% if RELEASE == "master" %}
-RUN git clone git://anongit.freedesktop.org/git/mesa/mesa /root/mesa
+RUN git clone git://anongit.freedesktop.org/git/mesa/mesa /home/local/mesa
 {% else %}
-RUN git clone https://github.com/Igalia/release-mesa -b {{ RELEASE }} /root/mesa
+RUN git clone https://github.com/Igalia/release-mesa -b {{ RELEASE }} /home/local/mesa
 {% endif %}
 
-WORKDIR /root/mesa
+WORKDIR /home/local/mesa
 
-RUN git show --stat > /root/mesa-head.txt
+RUN git show --stat > /home/local/mesa-head.txt
 
 ENV PATH=/usr/lib/llvm-3.9/bin:$PATH
 
 {% if BUILD == "scons" %}
 RUN scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1        \
   && scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1 check \
-  && rm -fr /root/mesa
+  && sudo rm -fr /home/local/mesa
 {% else %}
 RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                                           \
   --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                                       \
@@ -41,8 +43,8 @@ RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                           
   && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %}                                     \
   && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} check                               \
   {% if RELEASE != "master" %} && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} distcheck {% endif %}                          \
-  && make install                                                                               \
-  && rm -fr /root/mesa
+  && sudo make install                                                                               \
+  && sudo rm -fr /home/local/mesa
 {% endif %}
 
-WORKDIR /root
+USER root
