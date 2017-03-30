@@ -51,4 +51,6 @@ RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                           
   && sudo rm -fr /home/local/mesa
 {% endif %}
 
+WORKDIR /home/local
+
 USER root
