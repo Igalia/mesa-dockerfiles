@@ -24,6 +24,7 @@ USER local
 RUN git clone https://github.com/Igalia/release-mesa -b {{ RELEASE }} /home/local/mesa
 {% else %}
 ADD . /home/local/mesa
+RUN sudo chown -R local:local /home/local/mesa
 {% endif %}
 
 WORKDIR /home/local/mesa
