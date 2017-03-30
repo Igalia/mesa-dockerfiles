@@ -1,0 +1,17 @@
+sudo: false
+os: linux
+services:
+  - docker
+
+branches:
+  only:
+    - master
+
+script:
+  - docker build . -f Dockerfile.base -t igalia/mesa:base
+
+after_success:
+  - if [[ -n "$DOCKER_USERNAME" ]]; then
+      docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+      docker push igalia/mesa:base;
+    fi
