@@ -82,14 +82,6 @@ RUN wget http://xorg.freedesktop.org/releases/individual/lib/libxshmfence-1.1.ta
   && sudo make install                                                                  \
   && sudo rm -fr ../libxshmfence-1.1
 
-RUN wget http://dri.freedesktop.org/libdrm/libdrm-2.4.75.tar.bz2                                        \
-  && tar -jxvf libdrm-2.4.75.tar.bz2                                                                    \
-  && rm libdrm-2.4.75.tar.bz2                                                                           \
-  && cd libdrm-2.4.75                                                                                   \
-  && ./configure --enable-freedreno --enable-vc4 --enable-etnaviv-experimental-api                      \
-  && sudo make install                                                                                  \
-  && sudo rm -fr ../libdrm-2.4.75
-
 RUN wget https://people.freedesktop.org/~cbrill/libtxc_dxtn/libtxc_dxtn-1.0.1.tar.bz2   \
   && tar -jxvf libtxc_dxtn-1.0.1.tar.bz2                                                \
   && rm libtxc_dxtn-1.0.1.tar.bz2                                                       \

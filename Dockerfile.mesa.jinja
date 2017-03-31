@@ -27,6 +27,18 @@ ADD . /home/local/mesa
 RUN sudo chown -R local:local /home/local/mesa
 {% endif %}
 
+WORKDIR /home/local
+
+RUN export DRM_VERSION=`cat /home/local/mesa/configure.ac | egrep ^LIBDRM.*REQUIRED| cut -f2 -d= | sort -nr | head -n 1`        \
+  && wget http://dri.freedesktop.org/libdrm/libdrm-$DRM_VERSION.tar.bz2              \
+  && tar -jxvf libdrm-$DRM_VERSION.tar.bz2                                           \
+  && rm libdrm-$DRM_VERSION.tar.bz2                                                  \
+  && cd libdrm-$DRM_VERSION                                                          \
+  && ./configure --enable-freedreno --enable-vc4 --enable-etnaviv-experimental-api   \
+  && sudo make install                                                               \
+  && sudo rm -fr ../libdrm-$DRM_VERSION                                              \
+  && unset DRM_VERSION
+
 WORKDIR /home/local/mesa
 
 RUN git show --stat > /home/local/mesa-head.txt
