@@ -1,0 +1,77 @@
+#
+# This builds and installs Vulkan/OpenGL CTS. Requires `docker-jinja`.
+#
+# Ensure you have cloned vk-gl-cts and Loaderandvalidationlayers repositories.
+#
+# ~~~
+#  dj -d Dockerfile.vk-gl-cts.jinja -o Dockerfile.vk-gl-cts     \
+#    -e VIDEO_GID=`getent group video | cut -f3 -d:`            \
+#    -e RELEASE=master   # master, 17.0, 13.0
+#    [-e BUILDJOBS=2]    # -j 2,3,... for make
+#  docker build . --pull -f Dockerfile.vk-gl-cts -t igalia/mesa:vk-gl-cts
+#  rm Dockerfile.vk-gl-cts
+# ~~~
+#
+# To run, you can pass CTS envvar as "opengl" or "vulkan" to run either OpenGL or Vulkan CTS tests, respectively.
+#
+# ~~~
+#   mkdir -p -m 0777 ~/my_results_dir
+#   docker run --device=/dev/dri/renderD128 --rm -t -v ~/my_results_dir:/results:Z  [-e CTS=vulkan|opengl] -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix igalia/mesa:vk-gl-cts
+# ~~~
+#
+
+FROM igalia/mesa:{{ RELEASE }}
+
+LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
+
+RUN apt-get update                                                              \
+  && apt-get -y --no-install-recommends install cmake python3 libxrandr-dev     \
+  && rm -fr /var/lib/apt/lists/*
+
+RUN pip install six
+
+# {{ VIDEO_GID }} is the gid for outside's video group. Required to access to
+# /dev/dri/renderD128
+RUN usermod -G {{ VIDEO_GID }} -a local
+
+USER local
+
+RUN git clone http://github.com/dcbaker/piglit.git -b wip/deqp-group-at-a-time /home/local/dcbaker-piglit
+
+ADD vk-gl-cts /home/local/vk-gl-cts
+
+ADD LoaderAndValidationLayers /home/local/LoaderAndValidationLayers
+
+RUN sudo chown -R local:local /home/local/vk-gl-cts  /home/local/LoaderAndValidationLayers
+
+RUN mkdir /home/local/vk-gl-cts/build  /home/local/LoaderAndValidationLayers/build
+
+WORKDIR /home/local/LoaderAndValidationLayers/build
+
+RUN ../update_external_sources.sh               \
+  && cmake .. -DBUILD_WSI_MIR_SUPPORT=OFF       \
+  && make -j8                                   \
+  && sudo make install                          \
+  && sudo ldconfig                              \
+  && sudo rm -fr /home/local/LoaderAndValidationLayers
+
+WORKDIR /home/local/vk-gl-cts/build
+
+RUN python ../external/fetch_sources.py                         \
+  && cmake .. -DDEQP_TARGET=x11_egl -DGLCTS_GTF_TARGET=gl       \
+  && make -j8
+
+RUN git show --stat > /home/local/vk-gl-cts-head.txt
+
+WORKDIR /home/local/dcbaker-piglit
+
+ENV PIGLIT_DEQP_VK_BIN=/home/local/vk-gl-cts/build/external/vulkancts/modules/vulkan/deqp-vk
+
+ENV PIGLIT_CTS_GL_BIN=/home/local/vk-gl-cts/build/external/openglcts/modules/glcts
+
+# vulkan, opengl
+ENV CTS=vulkan
+
+VOLUME /results
+
+CMD [ "/bin/sh", "-c", "cp /home/local/*head.txt /results && if [ $CTS = opengl ]; then ./piglit-run.py tests/cts_gl /results; else ./piglit-run.py -c --deqp-mode=group tests/deqp_vk /results; fi" ]
