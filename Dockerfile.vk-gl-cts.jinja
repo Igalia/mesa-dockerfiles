@@ -8,7 +8,7 @@
 #    -e VIDEO_GID=`getent group video | cut -f3 -d:`            \
 #    -e RELEASE=master   # master, 17.0, 13.0
 #    [-e BUILDJOBS=2]    # -j 2,3,... for make
-#  docker build . --pull -f Dockerfile.vk-gl-cts -t igalia/mesa:vk-gl-cts
+#  docker build --pull -f Dockerfile.vk-gl-cts -t igalia/mesa:vk-gl-cts .
 #  rm Dockerfile.vk-gl-cts
 # ~~~
 #

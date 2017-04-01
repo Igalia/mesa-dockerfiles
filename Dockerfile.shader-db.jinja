@@ -5,7 +5,7 @@
 #  dj -d Dockerfile.shader-db.jinja -o Dockerfile.shader-db \
 #    -e VIDEO_GID=`getent group video | cut -f3 -d:`        \
 #    -e RELEASE=master   # master, 17.0, 13.0
-#  docker build . --pull -f Dockerfile.shader-db -t igalia/mesa:shader-db
+#  docker build --pull -f Dockerfile.shader-db -t igalia/mesa:shader-db .
 #  rm Dockefile.shader-db
 # ~~~
 #
