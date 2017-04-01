@@ -3,7 +3,7 @@
 #
 # ~~~
 #  dj -d Dockerfile.base.jinja -o Dockerfile.base       \
-#    [-e LLVM=3.3]          # 3.3, 3.6 or 3.8
+#    [-e LLVM=3.3]          # 3.3, 3.6, 3.8 or 3.9      \
 #    [-e BUILDJOBS=2]       # -j 2,3,... for make
 #  docker build [--pull] -f Dockerfile.base -t igalia/mesa:base .
 #
@@ -70,6 +70,16 @@ RUN wget http://releases.llvm.org/3.8.1/llvm-3.8.1.src.tar.xz                   
   && cmake ../ -G "Unix Makefiles" -DLLVM_BUILD_LLVM_DYLIB=ON -DCMAKE_INSTALL_PREFIX=/usr/local/lib/llvm-3.8 -DCMAKE_BUILD_TYPE=Release \
   && sudo make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} install                                                                \
   && sudo rm -fr ../../llvm-3.8.1.src
+{% elif LLVM == "3.9" %}
+RUN wget http://releases.llvm.org/3.9.1/llvm-3.9.1.src.tar.xz                                                                           \
+  && tar xJpf llvm-3.9.1.src.tar.xz                                                                                                     \
+  && rm llvm-3.9.1.src.tar.xz                                                                                                           \
+  && cd llvm-3.9.1.src                                                                                                                  \
+  && mkdir build                                                                                                                        \
+  && cd build                                                                                                                           \
+  && cmake ../ -G "Unix Makefiles" -DLLVM_BUILD_LLVM_DYLIB=ON -DCMAKE_INSTALL_PREFIX=/usr/local/lib/llvm-3.9 -DCMAKE_BUILD_TYPE=Release \
+  && sudo make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} install                                                                \
+  && sudo rm -fr ../../llvm-3.9.1.src
 {% else %}
 RUN wget http://xorg.freedesktop.org/releases/individual/proto/glproto-1.4.14.tar.bz2   \
   && tar -jxvf glproto-1.4.14.tar.bz2                                                   \
@@ -134,16 +144,6 @@ RUN wget https://people.freedesktop.org/~cbrill/libtxc_dxtn/libtxc_dxtn-1.0.1.ta
   && ./configure                                                                        \
   && sudo make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} install                \
   && sudo rm -fr ../libtxc_dxtn-1.0.1
-
-RUN wget http://releases.llvm.org/3.9.1/llvm-3.9.1.src.tar.xz                                                                           \
-  && tar xJpf llvm-3.9.1.src.tar.xz                                                                                                     \
-  && rm llvm-3.9.1.src.tar.xz                                                                                                           \
-  && cd llvm-3.9.1.src                                                                                                                  \
-  && mkdir build                                                                                                                        \
-  && cd build                                                                                                                           \
-  && cmake ../ -G "Unix Makefiles" -DLLVM_BUILD_LLVM_DYLIB=ON -DCMAKE_INSTALL_PREFIX=/usr/local/lib/llvm-3.9 -DCMAKE_BUILD_TYPE=Release \
-  && sudo make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} install                                                                \
-  && sudo rm -fr ../../llvm-3.9.1.src
 {% endif %}
 
 USER root
