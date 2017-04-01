@@ -14,8 +14,8 @@ FROM igalia/mesa:base
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
-RUN apt-get update                                      \
-  && apt-get -y --no-install-recommends install git     \
+RUN apt-get update                                               \
+  && apt-get -y --no-install-recommends install git libtinfo-dev \
   && rm -fr /var/lib/apt/lists/*
 
 USER local
@@ -56,7 +56,7 @@ RUN ./autogen.sh                                                        \
 {% else %}
 RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                           \
   --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                       \
-  --with-gallium-drivers=i915,nouveau,r300,r600,freedreno,svga,swrast,vc4,virgl{% if "13.0" not in RELEASE %},etnaviv,imx{% endif %}    \
+  --with-gallium-drivers=i915,nouveau,r300,r600,freedreno,svga,swrast,swr,vc4,virgl{% if "13.0" not in RELEASE %},etnaviv,imx{% endif %}    \
   --with-vulkan-drivers=intel --enable-llvm-shared-libs --enable-llvm           \
   --enable-glx-tls --enable-gbm --enable-egl                                    \
   && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %}                     \
