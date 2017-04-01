@@ -9,13 +9,13 @@ FROM debian:unstable
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
 RUN apt-get update                                                                     \
-  && apt-get --no-install-recommends -y install llvm-3.9 libclang-3.9-dev autoconf     \
-    pkg-config llvm-3.9-dev libtool-bin bison flex python-pip libpthread-stubs0-dev    \
+  && apt-get --no-install-recommends -y install autoconf gcc g++ sudo cmake patch      \
+    automake pkg-config libtool-bin bison flex python-pip libpthread-stubs0-dev        \
     wget libxau-dev libx11-dev libxext-dev libxdamage-dev libx11-xcb-dev gettext       \
     zlib1g-dev scons libelf-dev libxvmc-dev libvdpau-dev libva-dev libclc-dev          \
     libpciaccess-dev libxxf86vm-dev python-setuptools python-wheel bzip2 make          \
     mesa-common-dev libxcb-dri3-dev libxcb-present-dev libxcb-glx0-dev xutils-dev      \
-    libxcb-dri2-0-dev libexpat1-dev automake xz-utils gcc g++ sudo                     \
+    libxcb-dri2-0-dev libexpat1-dev xz-utils                                           \
   && rm -fr /var/lib/apt/lists/*
 
 RUN pip install mako
@@ -89,5 +89,52 @@ RUN wget https://people.freedesktop.org/~cbrill/libtxc_dxtn/libtxc_dxtn-1.0.1.ta
   && ./configure                                                                        \
   && sudo make install                                                                  \
   && sudo rm -fr ../libtxc_dxtn-1.0.1
+
+RUN wget http://releases.llvm.org/3.3/llvm-3.3.src.tar.gz                    \
+  && tar xzpf llvm-3.3.src.tar.gz                                            \
+  && rm llvm-3.3.src.tar.gz                                                  \
+  && wget 'http://llvm.org/viewvc/llvm-project/llvm/trunk/lib/Target/AArch64/Utils/CMakeLists.txt?r1=174369&r2=182190&pathrev=182190&sortby=rev&view=patch' -O llvm-3.3.patch \
+  && cd llvm-3.3.src                                                         \
+  && patch -p2 -i ../llvm-3.3.patch                                          \
+  && rm ../llvm-3.3.patch                                                    \
+  && mkdir build                                                             \
+  && cd build                                                                \
+  && cmake ../ -G "Unix Makefiles" -DLLVM_BUILD_LLVM_DYLIB=ON -DCMAKE_INSTALL_PREFIX=/usr/local/lib/llvm-3.3 -DCMAKE_BUILD_TYPE=Release \
+  && make                                                                    \
+  && sudo make install                                                       \
+  && sudo rm -fr ../../llvm-3.3.src
+
+RUN wget http://releases.llvm.org/3.6.2/llvm-3.6.2.src.tar.xz                \
+  && tar xJpf llvm-3.6.2.src.tar.xz                                          \
+  && rm llvm-3.6.2.src.tar.xz                                                \
+  && cd llvm-3.6.2.src                                                       \
+  && mkdir build                                                             \
+  && cd build                                                                \
+  && cmake ../ -G "Unix Makefiles" -DLLVM_BUILD_LLVM_DYLIB=ON -DCMAKE_INSTALL_PREFIX=/usr/local/lib/llvm-3.6 -DCMAKE_BUILD_TYPE=Release \
+  && make                                                                    \
+  && sudo make install                                                       \
+  && sudo rm -fr ../../llvm-3.6.2.src
+
+RUN wget http://releases.llvm.org/3.8.1/llvm-3.8.1.src.tar.xz                \
+  && tar xJpf llvm-3.8.1.src.tar.xz                                          \
+  && rm llvm-3.8.1.src.tar.xz                                                \
+  && cd llvm-3.8.1.src                                                       \
+  && mkdir build                                                             \
+  && cd build                                                                \
+  && cmake ../ -G "Unix Makefiles" -DLLVM_BUILD_LLVM_DYLIB=ON -DCMAKE_INSTALL_PREFIX=/usr/local/lib/llvm-3.8 -DCMAKE_BUILD_TYPE=Release \
+  && make                                                                    \
+  && sudo make install                                                       \
+  && sudo rm -fr ../../llvm-3.8.1.src
+
+RUN wget http://releases.llvm.org/3.9.1/llvm-3.9.1.src.tar.xz                \
+  && tar xJpf llvm-3.9.1.src.tar.xz                                          \
+  && rm llvm-3.9.1.src.tar.xz                                                \
+  && cd llvm-3.9.1.src                                                       \
+  && mkdir build                                                             \
+  && cd build                                                                \
+  && cmake ../ -G "Unix Makefiles" -DLLVM_BUILD_LLVM_DYLIB=ON -DCMAKE_INSTALL_PREFIX=/usr/local/lib/llvm-3.9 -DCMAKE_BUILD_TYPE=Release \
+  && make                                                                    \
+  && sudo make install                                                       \
+  && sudo rm -fr ../../llvm-3.9.1.src
 
 USER root

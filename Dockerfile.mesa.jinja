@@ -43,7 +43,7 @@ WORKDIR /home/local/mesa
 
 RUN git show --stat > /home/local/mesa-head.txt
 
-ENV PATH=/usr/lib/llvm-3.9/bin:$PATH
+ENV PATH=/usr/local/lib/llvm-3.9/bin:$PATH
 
 {% if BUILD == "scons" %}
 RUN scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1        \
