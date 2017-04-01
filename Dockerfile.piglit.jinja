@@ -30,7 +30,7 @@ RUN pip install numpy six
 
 USER local
 
-RUN git clone git://anongit.freedesktop.org/piglit /home/local/piglit
+RUN git clone --depth 1 git://anongit.freedesktop.org/piglit /home/local/piglit
 
 WORKDIR /home/local/piglit
 

@@ -32,7 +32,7 @@ RUN usermod -G {{ VIDEO_GID }} -a local
 
 USER local
 
-RUN git clone git://anongit.freedesktop.org/mesa/shader-db /home/local/shader-db
+RUN git clone --depth 1 git://anongit.freedesktop.org/mesa/shader-db /home/local/shader-db
 
 WORKDIR /home/local/shader-db
 
