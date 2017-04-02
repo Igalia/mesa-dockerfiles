@@ -7,20 +7,8 @@ branches:
   only:
     - master
 
-before_script:
-  - pip install docker-jinja
-
 script:
-  - dj -d Dockerfile.base.jinja -o Dockerfile -e BUILDJOBS=2
-  - docker build -c 2 -f Dockerfile -t igalia/mesa:base .
-  - dj -d Dockerfile.base.jinja -o Dockerfile -e BUILDJOBS=2 -e LLVM=3.3
-  - docker build -c 2 -f Dockerfile -t igalia/mesa:base .
-  - dj -d Dockerfile.base.jinja -o Dockerfile -e BUILDJOBS=2 -e LLVM=3.6
-  - docker build -c 2 -f Dockerfile -t igalia/mesa:base .
-  - dj -d Dockerfile.base.jinja -o Dockerfile -e BUILDJOBS=2 -e LLVM=3.8
-  - docker build -c 2 -f Dockerfile -t igalia/mesa:base .
-  - dj -d Dockerfile.base.jinja -o Dockerfile -e BUILDJOBS=2 -e LLVM=3.9
-  - docker build -c 2 -f Dockerfile -t igalia/mesa:base .
+  - docker build . -f Dockerfile.base -t igalia/mesa:base
 
 after_success:
   - if [[ -n "$DOCKER_USERNAME" ]]; then
