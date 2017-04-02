@@ -5,6 +5,7 @@
 #  dj -d Dockerfile.mesa.jinja -o Dockerfile.mesa       \
 #    -e BUILD=autotools	  # scons, autotools, distcheck \
 #    -e LLVM=3.3          # 3.3, 3.6, 3.8 or 3.9        \
+#    [-e WINDOWS=1]       # 0, 1                        \
 #    [-e RELEASE=master]  # master, wip/17.0, wip/13.0  \
 #    [-e BUILDJOBS=2]       # -j 2,3,... for make
 #  docker build --pull -f Dockerfile.mesa -t igalia/mesa:master .
@@ -16,7 +17,9 @@ FROM igalia/mesa:base
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
 RUN apt-get update                                               \
-  && apt-get -y --no-install-recommends install git libtinfo-dev \
+  && apt-get -y --no-install-recommends install git              \
+     {% if WINDOWS and WINDOWS|int > 0 %}mingw-w64 llvm-dev{% endif %}    \
+     {% if LLVM|float >= 3.9 %}libtinfo-dev{% endif %}           \
   && rm -fr /var/lib/apt/lists/*
 
 USER local
@@ -44,11 +47,13 @@ WORKDIR /home/local/mesa
 
 RUN git show --stat > /home/local/mesa-head.txt
 
+{% if not WINDOWS or WINDOWS|int == 0 %}
 ENV PATH=/usr/local/lib/llvm-{{ LLVM }}/bin:$PATH
+{% endif %}
 
 {% if BUILD == "scons" %}
-RUN scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1        \
-  && scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1 check \
+RUN scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} {% if WINDOWS and WINDOWS|int > 0 %} platform=windows toolchain=crossmingw {% endif %} llvm=1        \
+  && scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} {% if WINDOWS and WINDOWS|int > 0 %} platform=windows toolchain=crossmingw {% endif %} llvm=1 check \
   && sudo rm -fr /home/local/mesa
 {% elif BUILD == "distcheck" %}
 RUN ./autogen.sh                                                        \
