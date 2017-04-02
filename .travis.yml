@@ -8,7 +8,7 @@ branches:
     - master
 
 script:
-  - docker build . -f Dockerfile.base -t igalia/mesa:base
+  - docker build -c 2 -f Dockerfile.base -t igalia/mesa:base .
 
 after_success:
   - if [[ -n "$DOCKER_USERNAME" ]]; then
