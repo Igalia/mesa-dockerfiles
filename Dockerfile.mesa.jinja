@@ -18,7 +18,7 @@ LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
 RUN apt-get update                                               \
   && apt-get -y --no-install-recommends install git              \
-     {% if WINDOWS and WINDOWS|int > 0 %}mingw-w64 llvm-dev{% endif %}    \
+     {% if WINDOWS and WINDOWS|int > 0 %}mingw-w64{% endif %}    \
      {% if LLVM|float >= 3.9 %}libtinfo-dev{% endif %}           \
   && rm -fr /var/lib/apt/lists/*
 
@@ -47,8 +47,9 @@ WORKDIR /home/local/mesa
 
 RUN git show --stat > /home/local/mesa-head.txt
 
-{% if not WINDOWS or WINDOWS|int == 0 %}
 ENV PATH=/usr/local/lib/llvm-{{ LLVM }}/bin:$PATH
+{% if WINDOWS and WINDOWS|int == 1 %}
+ENV LLVM=/usr/local/lib/llvm-{{ LLVM }}
 {% endif %}
 
 {% if BUILD == "scons" %}
