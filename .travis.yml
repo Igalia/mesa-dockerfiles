@@ -18,7 +18,7 @@ script:
   - docker build -c 2 -f Dockerfile -t igalia/mesa:llvm-3.6 .
   - dj -d Dockerfile.llvm.jinja -o Dockerfile -e BUILDJOBS=2 -e LLVM=3.8
   - docker build -c 2 -f Dockerfile -t igalia/mesa:llvm-3.8 .
-  - dj -d Dockerfile.llvm.jinja -o Dockerfile -e BUILDJOBS=2
+  - dj -d Dockerfile.llvm.jinja -o Dockerfile -e BUILDJOBS=2 -e LLVM=3.9
   - docker build -c 2 -f Dockerfile -t igalia/mesa:llvm-3.9 .
 
 after_success:
