@@ -7,12 +7,12 @@
 #    -e LLVM=3.3          # 3.3, 3.6, 3.8 or 3.9        \
 #    [-e WINDOWS=1]       # 0, 1                        \
 #    [-e RELEASE=master]  # master, wip/17.0, wip/13.0  \
-#    [-e BUILDJOBS=2]       # -j 2,3,... for make
-#  docker build --pull -f Dockerfile.mesa -t igalia/mesa:master .
+#    [-e BUILDJOBS=2]     # -j 2,3,... for make
+#  docker build --pull -f Dockerfile.mesa -t igalia/mesa:llvm-{{ LLVM }} .
 #  rm Dockerfile.mesa
 #
 
-FROM igalia/mesa:base
+FROM igalia/mesa:llvm-{{ LLVM }}
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
@@ -49,7 +49,7 @@ RUN git show --stat > /home/local/mesa-head.txt
 
 ENV PATH=/usr/local/lib/llvm-{{ LLVM }}/bin:$PATH
 {% if WINDOWS and WINDOWS|int == 1 %}
-ENV LLVM=/usr/local/lib/llvm-{{ LLVM }}
+ENV LLVM=/usr/lib/llvm-{{ LLVM }}
 {% endif %}
 
 {% if BUILD == "scons" %}

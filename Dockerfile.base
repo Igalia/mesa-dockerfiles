@@ -1,7 +1,7 @@
 #
 # Base image for building Mesa.
 #
-#  `docker build . -f Dockerfile.base -t igalia/mesa:base`
+#  `docker build -f Dockerfile.base -t igalia/mesa:base .`
 #
 
 FROM debian:unstable
@@ -89,49 +89,5 @@ RUN wget https://people.freedesktop.org/~cbrill/libtxc_dxtn/libtxc_dxtn-1.0.1.ta
   && ./configure                                                                        \
   && sudo make -j 2 install                                                             \
   && sudo rm -fr ../libtxc_dxtn-1.0.1
-
-RUN wget http://releases.llvm.org/3.3/llvm-3.3.src.tar.gz                             \
-  && tar xzpf llvm-3.3.src.tar.gz                                                     \
-  && rm llvm-3.3.src.tar.gz                                                           \
-  && cd llvm-3.3.src                                                                  \
-  && mkdir build                                                                      \
-  && cd build                                                                         \
-  && ../configure --enable-optimized --enable-shared --prefix=/usr/local/lib/llvm-3.3 \
-  && sudo make -j 2 install                                                           \
-  && sudo rm -fr ../../llvm-3.3.src
-
-RUN wget http://releases.llvm.org/3.6.2/llvm-3.6.2.src.tar.xz                                                                       \
-  && tar xJpf llvm-3.6.2.src.tar.xz                                                                                                 \
-  && rm llvm-3.6.2.src.tar.xz                                                                                                       \
-  && cd llvm-3.6.2.src                                                                                                              \
-  && mkdir build                                                                                                                    \
-  && cd build                                                                                                                       \
-  && cmake ../ -G "Unix Makefiles" -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local/lib/llvm-3.6 -DCMAKE_BUILD_TYPE=Release \
-  && sudo make -j 2 install                                                                                                         \
-  && sudo rm -fr ../../llvm-3.6.2.src
-
-RUN wget http://releases.llvm.org/3.8.1/llvm-3.8.1.src.tar.xz                                                                           \
-  && tar xJpf llvm-3.8.1.src.tar.xz                                                                                                     \
-  && rm llvm-3.8.1.src.tar.xz                                                                                                           \
-  && cd llvm-3.8.1.src                                                                                                                  \
-  && mkdir build                                                                                                                        \
-  && cd build                                                                                                                           \
-  && cmake ../ -G "Unix Makefiles" -DLLVM_BUILD_LLVM_DYLIB=ON -DCMAKE_INSTALL_PREFIX=/usr/local/lib/llvm-3.8 -DCMAKE_BUILD_TYPE=Release \
-  && sudo make -j 2 install                                                                                                             \
-  && sudo rm -fr ../../llvm-3.8.1.src
-
-RUN wget http://releases.llvm.org/3.9.1/llvm-3.9.1.src.tar.xz                                                                           \
-  && tar xJpf llvm-3.9.1.src.tar.xz                                                                                                     \
-  && rm llvm-3.9.1.src.tar.xz                                                                                                           \
-  && wget http://releases.llvm.org/3.9.1/cfe-3.9.1.src.tar.xz                                                                           \
-  && tar xJpf cfe-3.9.1.src.tar.xz                                                                                                      \
-  && rm cfe-3.9.1.src.tar.xz                                                                                                            \
-  && mv cfe-3.9.1.src llvm-3.9.1.src/tools/clang                                                                                        \
-  && cd llvm-3.9.1.src                                                                                                                  \
-  && mkdir build                                                                                                                        \
-  && cd build                                                                                                                           \
-  && cmake ../ -G "Unix Makefiles" -DLLVM_BUILD_LLVM_DYLIB=ON -DCMAKE_INSTALL_PREFIX=/usr/local/lib/llvm-3.9 -DCMAKE_BUILD_TYPE=Release \
-  && sudo make -j 2 install                                                                                                             \
-  && sudo rm -fr ../../llvm-3.9.1.src
 
 USER root
