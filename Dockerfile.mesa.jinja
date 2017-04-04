@@ -11,7 +11,11 @@
 #  rm Dockerfile.mesa
 #
 
+{% if BUILD == "windows" %}
+FROM igalia/mesa:base
+{% else %}
 FROM igalia/mesa:llvm-{{ LLVM }}
+{% endif %}
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
@@ -56,8 +60,6 @@ RUN scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1        \
   && scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1 check \
   && sudo rm -fr /home/local/mesa
 {% elif BUILD == "windows" %}
-ENV LLVM=/usr/lib/llvm-{{ LLVM }}
-
 RUN scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} platform=windows toolchain=crossmingw        \
   && scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} platform=windows toolchain=crossmingw check \
   && sudo rm -fr /home/local/mesa
