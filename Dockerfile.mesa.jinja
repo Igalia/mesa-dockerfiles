@@ -46,7 +46,7 @@ WORKDIR /home/local/mesa
 
 RUN git show --stat > /home/local/mesa-head.txt
 
-{% if LLVM == "3.9" %}
+{% if LLVM|float >= 3.8 %}
 ENV PATH=/usr/lib/llvm-{{ LLVM }}/bin:$PATH
 {% else %}
 ENV PATH=/usr/local/lib/llvm-{{ LLVM }}/bin:$PATH
