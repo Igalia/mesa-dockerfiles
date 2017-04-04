@@ -27,15 +27,10 @@ USER local
 WORKDIR /home/local
 
 {% if LLVM == "3.3" %}
-RUN wget http://releases.llvm.org/3.3/llvm-3.3.src.tar.gz                             \
-  && tar xzpf llvm-3.3.src.tar.gz                                                     \
-  && rm llvm-3.3.src.tar.gz                                                           \
-  && cd llvm-3.3.src                                                                  \
-  && mkdir build                                                                      \
-  && cd build                                                                         \
-  && ../configure --enable-optimized --enable-shared --prefix=/usr/local/lib/llvm-3.3 \
-  && sudo make -j 2 install                                                           \
-  && sudo rm -fr ../../llvm-3.3.src
+RUN wget http://releases.llvm.org/3.3/clang+llvm-3.3-amd64-debian6.tar.bz2 \
+  && tar xjpf clang+llvm-3.3-amd64-debian6.tar.bz2                         \
+  && rm clang+llvm-3.3-amd64-debian6.tar.bz2                               \
+  && sudo mv clang+llvm-3.3-amd64-debian6 /usr/local/lib/llvm-3.3
 {% elif LLVM == "3.6" %}
 RUN wget http://releases.llvm.org/3.6.2/llvm-3.6.2.src.tar.xz                                                                       \
   && tar xJpf llvm-3.6.2.src.tar.xz                                                                                                 \
