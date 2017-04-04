@@ -2,12 +2,11 @@
 # This builds and installs Mesa.
 #
 # ~~~
-#  dj -d Dockerfile.mesa.jinja -o Dockerfile.mesa       \
-#    -e BUILD=autotools	  # scons, autotools, distcheck \
-#    -e LLVM=3.3          # 3.3, 3.6, 3.8 or 3.9        \
-#    [-e WINDOWS=1]       # 0, 1                        \
-#    [-e RELEASE=master]  # master, wip/17.0, wip/13.0  \
-#    [-e BUILDJOBS=2]     # -j 2,3,... for make
+#  dj -d Dockerfile.mesa.jinja -o Dockerfile.mesa                \
+#    -e BUILD=autotools	  # scons, autotools, windows, distcheck \
+#    -e BUILDJOBS=2       # -j 2,3,... for make                  \
+#    -e LLVM=3.3          # 3.3, 3.6, 3.8 or 3.9                 \
+#    [-e RELEASE=master]  # master, wip/17.0, wip/13.0
 #  docker build --pull -f Dockerfile.mesa -t igalia/mesa:llvm-{{ LLVM }} .
 #  rm Dockerfile.mesa
 #

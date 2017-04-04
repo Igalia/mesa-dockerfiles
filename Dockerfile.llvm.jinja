@@ -2,9 +2,8 @@
 # This builds the base image for building Mesa.
 #
 # ~~~
-#  dj -d Dockerfile.llvm.jinja -o Dockerfile.llvm    \
-#    -e LLVM=3.3            # 3.3, 3.6, 3.8 or 3.9   \
-#    [-e BUILDJOBS=2]       # -j 2,3,... for make
+#  dj -d Dockerfile.llvm.jinja -o Dockerfile.llvm  \
+#    -e LLVM=3.3            # 3.3, 3.6, 3.8 or 3.9
 #  docker build [--pull] -f Dockerfile.base -t igalia/mesa:base .
 #
 
