@@ -15,9 +15,9 @@ FROM igalia/mesa:llvm-{{ LLVM }}
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
-RUN apt-get update                                               \
-  && apt-get -y --no-install-recommends install git              \
-     {% if WINDOWS and WINDOWS|int > 0 %}mingw-w64{% endif %}    \
+RUN apt-get update                                   \
+  && apt-get -y --no-install-recommends install git  \
+     {% if BUILD == "windows" %}mingw-w64{% endif %} \
   && rm -fr /var/lib/apt/lists/*
 
 USER local
@@ -50,13 +50,16 @@ ENV PATH=/usr/lib/llvm-{{ LLVM }}/bin:$PATH
 {% else %}
 ENV PATH=/usr/local/lib/llvm-{{ LLVM }}/bin:$PATH
 {% endif %}
-{% if WINDOWS and WINDOWS|int == 1 %}
-ENV LLVM=/usr/lib/llvm-{{ LLVM }}
-{% endif %}
 
 {% if BUILD == "scons" %}
-RUN scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} {% if WINDOWS and WINDOWS|int > 0 %} platform=windows toolchain=crossmingw {% endif %} llvm=1        \
-  && scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} {% if WINDOWS and WINDOWS|int > 0 %} platform=windows toolchain=crossmingw {% endif %} llvm=1 check \
+RUN scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1        \
+  && scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1 check \
+  && sudo rm -fr /home/local/mesa
+{% elif BUILD == "windows" %}
+ENV LLVM=/usr/lib/llvm-{{ LLVM }}
+
+RUN scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} platform=windows toolchain=crossmingw        \
+  && scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} platform=windows toolchain=crossmingw check \
   && sudo rm -fr /home/local/mesa
 {% elif BUILD == "distcheck" %}
 RUN ./autogen.sh                                                        \
