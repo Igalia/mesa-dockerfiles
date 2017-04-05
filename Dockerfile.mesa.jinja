@@ -61,7 +61,6 @@ RUN scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1        \
   && sudo rm -fr /home/local/mesa
 {% elif BUILD == "windows" %}
 RUN scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} platform=windows toolchain=crossmingw        \
-  && scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} platform=windows toolchain=crossmingw check \
   && sudo rm -fr /home/local/mesa
 {% elif BUILD == "distcheck" %}
 RUN ./autogen.sh                                                        \
