@@ -19,6 +19,16 @@ RUN apt-get update                                                            \
 RUN apt-get update                                                            \
   && apt-get --no-install-recommends -y install libclang-3.8-dev llvm-3.8-dev \
   && rm -fr /var/lib/apt/lists/*
+{% elif LLVM == "3.6" %}
+RUN apt-get update                                                            \
+  && apt-get --no-install-recommends -y install gnupg                         \
+  && wget -qO - http://download.opensuse.org/repositories/home:/tanty:/llvm-toolchain/Debian_Next_ga/Release.key | apt-key add - \
+  && echo "deb http://download.opensuse.org/repositories/home:/tanty:/llvm-toolchain/Debian_Next_ga /" >> /etc/apt/sources.list  \
+  && apt-get update                                                           \
+  && apt-get --no-install-recommends -y install libclang-3.6-dev llvm-3.6-dev \
+  && sed -i '$ d' /etc/apt/sources.list                                       \
+  && apt-key del 9F4321158E739A35                                             \
+  && rm -fr /var/lib/apt/lists/*
 {% endif %}
 
 USER local
@@ -35,16 +45,6 @@ RUN wget http://releases.llvm.org/3.3/llvm-3.3.src.tar.gz                       
   && ../configure --enable-optimized --enable-shared --prefix=/usr/local/lib/llvm-3.3 \
   && sudo make -j 2 install                                                           \
   && sudo rm -fr ../../llvm-3.3.src
-{% elif LLVM == "3.6" %}
-RUN wget http://releases.llvm.org/3.6.2/llvm-3.6.2.src.tar.xz                                                                       \
-  && tar xJpf llvm-3.6.2.src.tar.xz                                                                                                 \
-  && rm llvm-3.6.2.src.tar.xz                                                                                                       \
-  && cd llvm-3.6.2.src                                                                                                              \
-  && mkdir build                                                                                                                    \
-  && cd build                                                                                                                       \
-  && cmake ../ -G "Unix Makefiles" -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local/lib/llvm-3.6 -DCMAKE_BUILD_TYPE=Release \
-  && sudo make -j 2 install                                                                                                         \
-  && sudo rm -fr ../../llvm-3.6.2.src
 {% endif %}
 
 USER root
