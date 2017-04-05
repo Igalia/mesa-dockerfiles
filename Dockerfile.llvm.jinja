@@ -31,10 +31,15 @@ RUN wget http://releases.llvm.org/3.3/clang+llvm-3.3-amd64-debian6.tar.bz2 \
   && rm clang+llvm-3.3-amd64-debian6.tar.bz2                               \
   && sudo mv clang+llvm-3.3-amd64-debian6 /usr/local/lib/llvm-3.3
 {% elif LLVM == "3.6" %}
-RUN wget http://releases.llvm.org/3.6.2/clang+llvm-3.6.2-x86_64-linux-gnu-ubuntu-15.04.tar.xz \
-  && tar xJpf clang+llvm-3.6.2-x86_64-linux-gnu-ubuntu-15.04.tar.xz                           \
-  && rm clang+llvm-3.6.2-x86_64-linux-gnu-ubuntu-15.04.tar.xz                                 \
-  && sudo mv clang+llvm-3.6.2-x86_64-linux-gnu-ubuntu-15.04 /usr/local/lib/llvm-3.6
+RUN wget http://releases.llvm.org/3.6.2/llvm-3.6.2.src.tar.xz                                                                       \
+  && tar xJpf llvm-3.6.2.src.tar.xz                                                                                                 \
+  && rm llvm-3.6.2.src.tar.xz                                                                                                       \
+  && cd llvm-3.6.2.src                                                                                                              \
+  && mkdir build                                                                                                                    \
+  && cd build                                                                                                                       \
+  && cmake ../ -G "Unix Makefiles" -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local/lib/llvm-3.6 -DCMAKE_BUILD_TYPE=Release \
+  && sudo make -j 2 install                                                                                                         \
+  && sudo rm -fr ../../llvm-3.6.2.src
 {% endif %}
 
 USER root

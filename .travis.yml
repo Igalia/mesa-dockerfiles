@@ -14,8 +14,8 @@ script:
   - docker build -c 2 -f Dockerfile.base -t igalia/mesa:base .
   - dj -d Dockerfile.llvm.jinja -o Dockerfile -e BUILDJOBS=2 -e LLVM=3.3
   - docker build -c 2 -f Dockerfile -t igalia/mesa:llvm-3.3 .
-  - dj -d Dockerfile.llvm.jinja -o Dockerfile -e BUILDJOBS=2 -e LLVM=3.6
-  - docker build -c 2 -f Dockerfile -t igalia/mesa:llvm-3.6 .
+  # - dj -d Dockerfile.llvm.jinja -o Dockerfile -e BUILDJOBS=2 -e LLVM=3.6
+  # - docker build -c 2 -f Dockerfile -t igalia/mesa:llvm-3.6 .
   - dj -d Dockerfile.llvm.jinja -o Dockerfile -e BUILDJOBS=2 -e LLVM=3.8
   - docker build -c 2 -f Dockerfile -t igalia/mesa:llvm-3.8 .
   - dj -d Dockerfile.llvm.jinja -o Dockerfile -e BUILDJOBS=2 -e LLVM=3.9
@@ -26,7 +26,6 @@ after_success:
       docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
       docker push igalia/mesa:base;
       docker push igalia/mesa:llvm-3.3;
-      docker push igalia/mesa:llvm-3.6;
       docker push igalia/mesa:llvm-3.8;
       docker push igalia/mesa:llvm-3.9;
     fi
