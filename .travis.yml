@@ -15,7 +15,6 @@ before_script:
   - pip install docker-jinja
 
 script:
-  - echo $BUILDJOBS
   - docker build -c $BUILDJOBS -f Dockerfile.base -t igalia/mesa:base .
   # - dj -d Dockerfile.llvm.jinja -o Dockerfile -e LLVM=3.3
   # - docker build -c $BUILDJOBS -f Dockerfile -t igalia/mesa:llvm-3.3 .
