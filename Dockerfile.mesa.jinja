@@ -41,7 +41,7 @@ RUN export DRM_VERSION=`cat /home/local/mesa/configure.ac | egrep ^LIBDRM.*REQUI
   && rm libdrm-$DRM_VERSION.tar.bz2                                                  \
   && cd libdrm-$DRM_VERSION                                                          \
   && ./configure --enable-freedreno --enable-vc4 --enable-etnaviv-experimental-api   \
-  && sudo make {% if BUILDJOBS %} -j {{ BUILDJOBS }} install                         \
+  && sudo make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %}                     \
   && sudo rm -fr ../libdrm-$DRM_VERSION                                              \
   && unset DRM_VERSION
 
