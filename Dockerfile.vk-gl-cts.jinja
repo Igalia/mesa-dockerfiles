@@ -4,11 +4,11 @@
 # Ensure you have cloned vk-gl-cts and Loaderandvalidationlayers repositories.
 #
 # ~~~
-#  dj -d Dockerfile.vk-gl-cts.jinja -o Dockerfile.vk-gl-cts     \
+#  dj -d Dockerfile.vk-gl-cts.jinja -o Dockerfile               \
 #    -e VIDEO_GID=`getent group video | cut -f3 -d:`            \
 #    -e RELEASE=master   # master, 17.0, 13.0                   \
-#  docker build --pull -f Dockerfile.vk-gl-cts -t igalia/mesa:vk-gl-cts .
-#  rm Dockerfile.vk-gl-cts
+#  docker build --pull -t igalia/mesa:vk-gl-cts .
+#  rm Dockerfile
 # ~~~
 #
 # To run, you can pass CTS envvar as "opengl" or "vulkan" to run either OpenGL or Vulkan CTS tests, respectively.
