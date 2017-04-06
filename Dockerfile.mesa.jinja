@@ -26,6 +26,8 @@ RUN apt-get update                                   \
 
 USER local
 
+ENV MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
+
 {% if RELEASE %}
 RUN git clone https://github.com/Igalia/release-mesa --depth 1 -b {{ RELEASE }} /home/local/mesa
 {% else %}
@@ -41,7 +43,7 @@ RUN export DRM_VERSION=`cat /home/local/mesa/configure.ac | egrep ^LIBDRM.*REQUI
   && rm libdrm-$DRM_VERSION.tar.bz2                                                  \
   && cd libdrm-$DRM_VERSION                                                          \
   && ./configure --enable-freedreno --enable-vc4 --enable-etnaviv-experimental-api   \
-  && sudo make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} install             \
+  && sudo make install                                                               \
   && sudo rm -fr ../libdrm-$DRM_VERSION                                              \
   && unset DRM_VERSION
 
@@ -56,15 +58,15 @@ ENV PATH=/usr/local/lib/llvm-{{ LLVM }}/bin:$PATH
 {% endif %}
 
 {% if BUILD == "scons" %}
-RUN scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1        \
-  && scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} llvm=1 check \
+RUN scons llvm=1                  \
+  && scons llvm=1 check           \
   && sudo rm -fr /home/local/mesa
 {% elif BUILD == "windows" %}
-RUN scons {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} platform=windows toolchain=crossmingw        \
+RUN scons platform=windows toolchain=crossmingw \
   && sudo rm -fr /home/local/mesa
 {% elif BUILD == "distcheck" %}
-RUN ./autogen.sh                                                        \
-  && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} distcheck   \
+RUN ./autogen.sh                  \
+  && make distcheck               \
   && sudo rm -fr /home/local/mesa
 {% else %}
 RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                           \
@@ -73,8 +75,8 @@ RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                           
   --with-vulkan-drivers=intel{% if LLVM|float >= 3.9 %},radeon{% endif %}       \
   --enable-llvm --enable-llvm-shared-libs                                       \
   --enable-glx-tls --enable-gbm --enable-egl                                    \
-  && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %}                     \
-  && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %} check               \
+  && make                                                                       \
+  && make check                                                                 \
   && sudo make install                                                          \
   && sudo rm -fr /home/local/mesa
 {% endif %}

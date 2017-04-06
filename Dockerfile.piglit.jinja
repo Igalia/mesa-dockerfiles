@@ -4,7 +4,6 @@
 # ~~~
 #  dj -d Dockerfile.piglit.jinja -o Dockerfile.piglit \
 #    -e RELEASE=master   # master, 17.0, 13.0         \
-#    [-e BUILDJOBS=2]    # -j 2,3,... for make
 #  docker build --pull -f Dockerfile.piglit -t igalia/mesa:piglit .
 #  rm Dockerfile.piglit
 # ~~~
@@ -30,13 +29,15 @@ RUN pip install numpy six
 
 USER local
 
+ENV MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
+
 RUN git clone --depth 1 git://anongit.freedesktop.org/piglit /home/local/piglit
 
 WORKDIR /home/local/piglit
 
 RUN git show --stat > /home/local/piglit-head.txt
 
-RUN cmake . && make {% if BUILDJOBS %} -j {{ BUILDJOBS }} {% endif %}
+RUN cmake . && make
 
 VOLUME /results
 

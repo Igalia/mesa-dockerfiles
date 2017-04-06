@@ -7,7 +7,6 @@
 #  dj -d Dockerfile.vk-gl-cts.jinja -o Dockerfile.vk-gl-cts     \
 #    -e VIDEO_GID=`getent group video | cut -f3 -d:`            \
 #    -e RELEASE=master   # master, 17.0, 13.0                   \
-#    -e BUILDJOBS=2      # -j 2,3,... for make
 #  docker build --pull -f Dockerfile.vk-gl-cts -t igalia/mesa:vk-gl-cts .
 #  rm Dockerfile.vk-gl-cts
 # ~~~
@@ -35,6 +34,8 @@ RUN pip install six
 RUN usermod -G {{ VIDEO_GID }} -a local
 
 USER local
+
+ENV MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
 
 RUN git clone http://github.com/dcbaker/piglit.git -b wip/deqp-group-at-a-time /home/local/dcbaker-piglit
 

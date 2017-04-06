@@ -26,12 +26,14 @@ USER local
 
 WORKDIR /home/local
 
+ENV MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
+
 RUN wget http://xorg.freedesktop.org/releases/individual/proto/glproto-1.4.14.tar.bz2   \
   && tar -jxvf glproto-1.4.14.tar.bz2                                                   \
   && rm glproto-1.4.14.tar.bz2                                                          \
   && cd glproto-1.4.14                                                                  \
   && ./configure                                                                        \
-  && sudo make -j 2 install                                                             \
+  && sudo make install                                                                  \
   && sudo rm -fr ../glproto-1.4.14
 
 RUN wget http://xorg.freedesktop.org/releases/individual/proto/dri2proto-2.8.tar.bz2    \
@@ -39,7 +41,7 @@ RUN wget http://xorg.freedesktop.org/releases/individual/proto/dri2proto-2.8.tar
   && rm dri2proto-2.8.tar.bz2                                                           \
   && cd dri2proto-2.8                                                                   \
   && ./configure                                                                        \
-  && sudo make -j 2 install                                                             \
+  && sudo make install                                                                  \
   && sudo rm -fr ../dri2proto-2.8
 
 RUN wget http://xorg.freedesktop.org/releases/individual/proto/dri3proto-1.0.tar.bz2    \
@@ -47,7 +49,7 @@ RUN wget http://xorg.freedesktop.org/releases/individual/proto/dri3proto-1.0.tar
   && rm dri3proto-1.0.tar.bz2                                                           \
   && cd dri3proto-1.0                                                                   \
   && ./configure                                                                        \
-  && sudo make -j 2 install                                                             \
+  && sudo make install                                                                  \
   && sudo rm -fr ../dri3proto-1.0
 
 RUN wget http://xorg.freedesktop.org/releases/individual/proto/presentproto-1.0.tar.bz2 \
@@ -55,7 +57,7 @@ RUN wget http://xorg.freedesktop.org/releases/individual/proto/presentproto-1.0.
   && rm presentproto-1.0.tar.bz2                                                        \
   && cd presentproto-1.0                                                                \
   && ./configure                                                                        \
-  && sudo make -j 2 install                                                             \
+  && sudo make install                                                                  \
   && sudo rm -fr ../presentproto-1.0
 
 # RUN wget http://xcb.freedesktop.org/dist/xcb-proto-1.11.tar.bz2 \
@@ -63,7 +65,7 @@ RUN wget http://xorg.freedesktop.org/releases/individual/proto/presentproto-1.0.
 #   && rm xcb-proto-1.11.tar.bz2                                  \
 #   && cd xcb-proto-1.11                                          \
 #   && ./configure                                                \
-#   && sudo make -j 2 install                                     \
+#   && sudo make install                                          \
 #   && sudo rm -fr ../xcb-proto-1.11
 
 # RUN wget http://xcb.freedesktop.org/dist/libxcb-1.11.tar.bz2    \
@@ -71,7 +73,7 @@ RUN wget http://xorg.freedesktop.org/releases/individual/proto/presentproto-1.0.
 #   && rm libxcb-1.11.tar.bz2                                     \
 #   && cd libxcb-1.11                                             \
 #   && ./configure                                                \
-#   && sudo make -j 2 install                                     \
+#   && sudo make install                                          \
 #   && sudo rm -fr ../libxcb-1.11
 
 RUN wget http://xorg.freedesktop.org/releases/individual/lib/libxshmfence-1.1.tar.bz2   \
@@ -79,7 +81,7 @@ RUN wget http://xorg.freedesktop.org/releases/individual/lib/libxshmfence-1.1.ta
   && rm libxshmfence-1.1.tar.bz2                                                        \
   && cd libxshmfence-1.1                                                                \
   && ./configure                                                                        \
-  && sudo make -j 2 install                                                             \
+  && sudo make install                                                                  \
   && sudo rm -fr ../libxshmfence-1.1
 
 RUN wget https://people.freedesktop.org/~cbrill/libtxc_dxtn/libtxc_dxtn-1.0.1.tar.bz2   \
@@ -87,7 +89,7 @@ RUN wget https://people.freedesktop.org/~cbrill/libtxc_dxtn/libtxc_dxtn-1.0.1.ta
   && rm libtxc_dxtn-1.0.1.tar.bz2                                                       \
   && cd libtxc_dxtn-1.0.1                                                               \
   && ./configure                                                                        \
-  && sudo make -j 2 install                                                             \
+  && sudo make install                                                                  \
   && sudo rm -fr ../libtxc_dxtn-1.0.1
 
 USER root
