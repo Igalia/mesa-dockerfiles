@@ -2,8 +2,9 @@
 # This builds the base image for building Mesa.
 #
 # ~~~
-#  dj -d Dockerfile.llvm.jinja -o Dockerfile    \
-#    -e LLVM=3.3            # 3.3, 3.6, 3.8 or 3.9
+#  dj -d Dockerfile.llvm.jinja -o Dockerfile       \
+#    -e LLVM=3.3            # 3.3, 3.6, 3.8 or 3.9 \
+#    [-e MAKEFLAGS=-j2]     # -j2, -j4 ...
 #  docker build --pull -f Dockerfile -t igalia/mesa:base .
 #  rm Dockerfile
 # ~~~
@@ -33,7 +34,9 @@ RUN apt-get update                                                            \
   && rm -fr /var/lib/apt/lists/*
 {% endif %}
 
-ENV MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
+{% if MAKEFLAGS %}
+ENV MAKEFLAGS={{ MAKEFLAGS }}
+{% endif %}
 
 USER local
 
@@ -47,7 +50,7 @@ RUN wget http://releases.llvm.org/3.3/llvm-3.3.src.tar.gz                       
   && mkdir build                                                                      \
   && cd build                                                                         \
   && ../configure --enable-optimized --enable-shared --prefix=/usr/local/lib/llvm-3.3 \
-  && make $MAKEFLAGS                                                                  \
+  && make                                                                             \
   && sudo make install                                                                \
   && sudo rm -fr ../../llvm-3.3.src
 {% endif %}

@@ -8,19 +8,21 @@ branches:
     - master
 
 env:
+  global:
+    - MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
 
 before_script:
   - pip install docker-jinja
 
 script:
   - docker build -f Dockerfile.base -t igalia/mesa:base .
-  # - dj -d Dockerfile.llvm.jinja -o Dockerfile -e LLVM=3.3
+  # - dj -d Dockerfile.llvm.jinja -o Dockerfile -e LLVM=3.3 -e MAKEFLAGS=$MAKEFLAGS
   # - docker build -f Dockerfile -t igalia/mesa:llvm-3.3 .
-  - dj -d Dockerfile.llvm.jinja -o Dockerfile -e LLVM=3.6
+  - dj -d Dockerfile.llvm.jinja -o Dockerfile -e LLVM=3.6 -e MAKEFLAGS=$MAKEFLAGS
   - docker build -f Dockerfile -t igalia/mesa:llvm-3.6 .
-  - dj -d Dockerfile.llvm.jinja -o Dockerfile -e LLVM=3.8
+  - dj -d Dockerfile.llvm.jinja -o Dockerfile -e LLVM=3.8 -e MAKEFLAGS=$MAKEFLAGS
   - docker build -f Dockerfile -t igalia/mesa:llvm-3.8 .
-  - dj -d Dockerfile.llvm.jinja -o Dockerfile -e LLVM=3.9
+  - dj -d Dockerfile.llvm.jinja -o Dockerfile -e LLVM=3.9 -e MAKEFLAGS=$MAKEFLAGS
   - docker build -f Dockerfile -t igalia/mesa:llvm-3.9 .
 
 after_success:

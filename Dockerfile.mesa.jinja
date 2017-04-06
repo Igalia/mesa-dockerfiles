@@ -5,6 +5,7 @@
 #  dj -d Dockerfile.mesa.jinja -o Dockerfile                     \
 #    -e BUILD=autotools	  # scons, autotools, windows, distcheck \
 #    -e LLVM=3.3          # 3.3, 3.6, 3.8 or 3.9                 \
+#    [-e MAKEFLAGS=-j2]   # -j2, -j4 ...                         \
 #    [-e RELEASE=master]  # master, wip/17.0, wip/13.0
 #  docker build --pull -t igalia/mesa:llvm-{{ LLVM }} .
 #  rm Dockerfile
@@ -26,7 +27,9 @@ RUN apt-get update                                   \
 
 USER local
 
-ENV MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
+{% if MAKEFLAGS %}
+ENV MAKEFLAGS={{ MAKEFLAGS }}
+{% endif %}
 
 {% if RELEASE %}
 RUN git clone https://github.com/Igalia/release-mesa --depth 1 -b {{ RELEASE }} /home/local/mesa
@@ -37,15 +40,15 @@ RUN sudo chown -R local:local /home/local/mesa
 
 WORKDIR /home/local
 
-RUN export DRM_VERSION=`cat /home/local/mesa/configure.ac | egrep ^LIBDRM.*REQUIRED| cut -f2 -d= | sort -nr | head -n 1`        \
-  && wget http://dri.freedesktop.org/libdrm/libdrm-$DRM_VERSION.tar.bz2              \
-  && tar -jxvf libdrm-$DRM_VERSION.tar.bz2                                           \
-  && rm libdrm-$DRM_VERSION.tar.bz2                                                  \
-  && cd libdrm-$DRM_VERSION                                                          \
-  && ./configure --enable-freedreno --enable-vc4 --enable-etnaviv-experimental-api   \
-  && make $MAKEFLAGS                                                                 \
-  && sudo make install                                                               \
-  && sudo rm -fr ../libdrm-$DRM_VERSION                                              \
+RUN export DRM_VERSION=`cat /home/local/mesa/configure.ac | egrep ^LIBDRM.*REQUIRED| cut -f2 -d= | sort -nr | head -n 1` \
+  && wget http://dri.freedesktop.org/libdrm/libdrm-$DRM_VERSION.tar.bz2                                                  \
+  && tar -jxvf libdrm-$DRM_VERSION.tar.bz2                                                                               \
+  && rm libdrm-$DRM_VERSION.tar.bz2                                                                                      \
+  && cd libdrm-$DRM_VERSION                                                                                              \
+  && ./configure --enable-freedreno --enable-vc4 --enable-etnaviv-experimental-api                                       \
+  && make                                                                                                                \
+  && sudo make install                                                                                                   \
+  && sudo rm -fr ../libdrm-$DRM_VERSION                                                                                  \
   && unset DRM_VERSION
 
 WORKDIR /home/local/mesa
@@ -59,15 +62,15 @@ ENV PATH=/usr/local/lib/llvm-{{ LLVM }}/bin:$PATH
 {% endif %}
 
 {% if BUILD == "scons" %}
-RUN scons $MAKEFLAGS llvm=1                  \
-  && scons $MAKEFLAGS llvm=1 check           \
+RUN scons llvm=1                  \
+  && scons llvm=1 check           \
   && sudo rm -fr /home/local/mesa
 {% elif BUILD == "windows" %}
-RUN scons $MAKEFLAGS platform=windows toolchain=crossmingw \
+RUN scons platform=windows toolchain=crossmingw \
   && sudo rm -fr /home/local/mesa
 {% elif BUILD == "distcheck" %}
 RUN ./autogen.sh                  \
-  && make $MAKEFLAGS distcheck    \
+  && make distcheck               \
   && sudo rm -fr /home/local/mesa
 {% else %}
 RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                           \
@@ -76,7 +79,7 @@ RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                           
   --with-vulkan-drivers=intel{% if LLVM|float >= 3.9 %},radeon{% endif %}       \
   --enable-llvm --enable-llvm-shared-libs                                       \
   --enable-glx-tls --enable-gbm --enable-egl                                    \
-  && make $MAKEFLAGS                                                            \
+  && make                                                                       \
   && make check                                                                 \
   && sudo make install                                                          \
   && sudo rm -fr /home/local/mesa

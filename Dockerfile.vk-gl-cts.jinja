@@ -7,6 +7,7 @@
 #  dj -d Dockerfile.vk-gl-cts.jinja -o Dockerfile               \
 #    -e VIDEO_GID=`getent group video | cut -f3 -d:`            \
 #    -e RELEASE=master   # master, 17.0, 13.0                   \
+#    [-e MAKEFLAGS=-j2]  # -j2, -j4 ...
 #  docker build --pull -t igalia/mesa:vk-gl-cts .
 #  rm Dockerfile
 # ~~~
@@ -23,8 +24,8 @@ FROM igalia/mesa:{{ RELEASE }}
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
-RUN apt-get update                                                              \
-  && apt-get -y --no-install-recommends install cmake python3 libxrandr-dev     \
+RUN apt-get update                                                          \
+  && apt-get -y --no-install-recommends install cmake python3 libxrandr-dev \
   && rm -fr /var/lib/apt/lists/*
 
 RUN pip install six
@@ -35,7 +36,9 @@ RUN usermod -G {{ VIDEO_GID }} -a local
 
 USER local
 
-ENV MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
+{% if MAKEFLAGS %}
+ENV MAKEFLAGS={{ MAKEFLAGS }}
+{% endif %}
 
 RUN git clone http://github.com/dcbaker/piglit.git -b wip/deqp-group-at-a-time /home/local/dcbaker-piglit
 
@@ -49,18 +52,18 @@ RUN mkdir /home/local/vk-gl-cts/build  /home/local/LoaderAndValidationLayers/bui
 
 WORKDIR /home/local/LoaderAndValidationLayers/build
 
-RUN ../update_external_sources.sh               \
-  && cmake .. -DBUILD_WSI_MIR_SUPPORT=OFF       \
-  && make $MAKEFLAGS                            \
-  && sudo make install                          \
-  && sudo ldconfig                              \
+RUN ../update_external_sources.sh                      \
+  && cmake .. -DBUILD_WSI_MIR_SUPPORT=OFF              \
+  && make                                              \
+  && sudo make install                                 \
+  && sudo ldconfig                                     \
   && sudo rm -fr /home/local/LoaderAndValidationLayers
 
 WORKDIR /home/local/vk-gl-cts/build
 
-RUN python ../external/fetch_sources.py                         \
-  && cmake .. -DDEQP_TARGET=x11_egl -DGLCTS_GTF_TARGET=gl       \
-  && make $MAKEFLAGS
+RUN python ../external/fetch_sources.py                   \
+  && cmake .. -DDEQP_TARGET=x11_egl -DGLCTS_GTF_TARGET=gl \
+  && make
 
 RUN git show --stat > /home/local/vk-gl-cts-head.txt
 
