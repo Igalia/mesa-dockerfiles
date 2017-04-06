@@ -37,7 +37,7 @@ WORKDIR /home/local/piglit
 
 RUN git show --stat > /home/local/piglit-head.txt
 
-RUN cmake . && make
+RUN cmake . && make $MAKEFLAGS
 
 VOLUME /results
 

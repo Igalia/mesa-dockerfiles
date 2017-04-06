@@ -51,7 +51,7 @@ WORKDIR /home/local/LoaderAndValidationLayers/build
 
 RUN ../update_external_sources.sh               \
   && cmake .. -DBUILD_WSI_MIR_SUPPORT=OFF       \
-  && make -j8                                   \
+  && make $MAKEFLAGS                            \
   && sudo make install                          \
   && sudo ldconfig                              \
   && sudo rm -fr /home/local/LoaderAndValidationLayers
@@ -60,7 +60,7 @@ WORKDIR /home/local/vk-gl-cts/build
 
 RUN python ../external/fetch_sources.py                         \
   && cmake .. -DDEQP_TARGET=x11_egl -DGLCTS_GTF_TARGET=gl       \
-  && make -j8
+  && make $MAKEFLAGS
 
 RUN git show --stat > /home/local/vk-gl-cts-head.txt
 

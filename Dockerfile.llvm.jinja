@@ -33,6 +33,8 @@ RUN apt-get update                                                            \
   && rm -fr /var/lib/apt/lists/*
 {% endif %}
 
+ENV MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
+
 USER local
 
 WORKDIR /home/local
@@ -45,7 +47,8 @@ RUN wget http://releases.llvm.org/3.3/llvm-3.3.src.tar.gz                       
   && mkdir build                                                                      \
   && cd build                                                                         \
   && ../configure --enable-optimized --enable-shared --prefix=/usr/local/lib/llvm-3.3 \
-  && sudo make -j 2 install                                                           \
+  && make $MAKEFLAGS                                                                  \
+  && sudo make install                                                                \
   && sudo rm -fr ../../llvm-3.3.src
 {% endif %}
 

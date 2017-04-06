@@ -40,7 +40,7 @@ WORKDIR /home/local/shader-db
 
 RUN git show --stat > /home/local/piglit-head.txt
 
-RUN make
+RUN make $MAKEFLAGS
 
 VOLUME /results
 
