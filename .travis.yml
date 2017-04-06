@@ -8,22 +8,20 @@ branches:
     - master
 
 env:
-  global:
-    - BUILDJOBS=$(getconf _NPROCESSORS_ONLN)
 
 before_script:
   - pip install docker-jinja
 
 script:
-  - docker build -c $BUILDJOBS -f Dockerfile.base -t igalia/mesa:base .
+  - docker build -f Dockerfile.base -t igalia/mesa:base .
   # - dj -d Dockerfile.llvm.jinja -o Dockerfile -e LLVM=3.3
-  # - docker build -c $BUILDJOBS -f Dockerfile -t igalia/mesa:llvm-3.3 .
+  # - docker build -f Dockerfile -t igalia/mesa:llvm-3.3 .
   - dj -d Dockerfile.llvm.jinja -o Dockerfile -e LLVM=3.6
-  - docker build -c $BUILDJOBS -f Dockerfile -t igalia/mesa:llvm-3.6 .
+  - docker build -f Dockerfile -t igalia/mesa:llvm-3.6 .
   - dj -d Dockerfile.llvm.jinja -o Dockerfile -e LLVM=3.8
-  - docker build -c $BUILDJOBS -f Dockerfile -t igalia/mesa:llvm-3.8 .
+  - docker build -f Dockerfile -t igalia/mesa:llvm-3.8 .
   - dj -d Dockerfile.llvm.jinja -o Dockerfile -e LLVM=3.9
-  - docker build -c $BUILDJOBS -f Dockerfile -t igalia/mesa:llvm-3.9 .
+  - docker build -f Dockerfile -t igalia/mesa:llvm-3.9 .
 
 after_success:
   - if [[ -n "$DOCKER_USERNAME" ]]; then
