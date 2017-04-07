@@ -29,6 +29,7 @@ USER local
 
 {% if MAKEFLAGS %}
 ENV MAKEFLAGS={{ MAKEFLAGS }}
+ENV SCONSFLAGS={{ MAKEFLAGS }}
 {% endif %}
 
 {% if RELEASE %}
