@@ -3,10 +3,6 @@ os: linux
 services:
   - docker
 
-branches:
-  only:
-    - master
-
 env:
   global:
     - MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"
@@ -26,7 +22,7 @@ script:
   - docker build -f Dockerfile -t igalia/mesa:llvm-3.9 .
 
 after_success:
-  - if [[ -n "$DOCKER_USERNAME" ]]; then
+  - if [[ -n "$DOCKER_USERNAME" && "$TRAVIS_BRANCH" == "master" ]]; then
       docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
       docker push igalia/mesa:base;
       docker push igalia/mesa:llvm-3.6;
