@@ -4,7 +4,7 @@
 #  `docker build -f Dockerfile.base -t igalia/mesa:base .`
 #
 
-FROM debian:unstable
+FROM ubuntu:xenial
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
@@ -15,7 +15,7 @@ RUN apt-get update                                                              
     zlib1g-dev scons libelf-dev libxvmc-dev libvdpau-dev libva-dev libclc-dev          \
     libpciaccess-dev libxxf86vm-dev python-setuptools python-wheel bzip2 make          \
     mesa-common-dev libxcb-dri3-dev libxcb-present-dev libxcb-glx0-dev xutils-dev      \
-    libxcb-dri2-0-dev libexpat1-dev xz-utils                                           \
+    libxcb-dri2-0-dev libexpat1-dev xz-utils libedit-dev libffi-dev libxml2-dev        \
   && rm -fr /var/lib/apt/lists/*
 
 RUN pip install mako
@@ -105,5 +105,15 @@ RUN wget https://people.freedesktop.org/~cbrill/libtxc_dxtn/libtxc_dxtn-1.0.1.ta
   && make                                                                               \
   && sudo make install                                                                  \
   && sudo rm -fr ../libtxc_dxtn-1.0.1
+
+RUN wget https://wayland.freedesktop.org/releases/wayland-1.13.0.tar.xz                 \
+  && tar -Jxvf wayland-1.13.0.tar.xz                                                    \
+  && rm wayland-1.13.0.tar.xz                                                           \
+  && cd wayland-1.13.0                                                                  \
+  && ./configure --disable-documentation                                                \
+  && export MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)"                                  \
+  && make                                                                               \
+  && sudo make install                                                                  \
+  && sudo rm -fr ../wayland-1.13.0
 
 USER root

@@ -16,6 +16,10 @@ LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
 {% if LLVM == "3.9" %}
 RUN apt-get update                                                            \
+  && apt-get --no-install-recommends -y install gnupg                         \
+  && wget -qO - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -     \
+  && echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-3.9 main" >> /etc/apt/sources.list  \
+  && apt-get update                                                           \
   && apt-get --no-install-recommends -y install libclang-3.9-dev llvm-3.9-dev \
   && rm -fr /var/lib/apt/lists/*
 {% elif LLVM == "3.8" %}
@@ -24,13 +28,7 @@ RUN apt-get update                                                            \
   && rm -fr /var/lib/apt/lists/*
 {% elif LLVM == "3.6" %}
 RUN apt-get update                                                            \
-  && apt-get --no-install-recommends -y install gnupg                         \
-  && wget -qO - http://download.opensuse.org/repositories/home:/tanty:/llvm-toolchain/Debian_Next_ga/Release.key | apt-key add - \
-  && echo "deb http://download.opensuse.org/repositories/home:/tanty:/llvm-toolchain/Debian_Next_ga /" >> /etc/apt/sources.list  \
-  && apt-get update                                                           \
   && apt-get --no-install-recommends -y install libclang-3.6-dev llvm-3.6-dev \
-  && sed -i '$ d' /etc/apt/sources.list                                       \
-  && apt-key del 9F4321158E739A35                                             \
   && rm -fr /var/lib/apt/lists/*
 {% endif %}
 

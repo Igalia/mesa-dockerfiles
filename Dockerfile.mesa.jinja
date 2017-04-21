@@ -56,10 +56,10 @@ WORKDIR /home/local/mesa
 
 RUN git show --stat > /home/local/mesa-head.txt
 
-{% if LLVM|float >= 3.6 %}
-ENV PATH=/usr/lib/llvm-{{ LLVM }}/bin:$PATH
+{% if LLVM == "3.3" %}
+ENV PATH=//usr/local/lib/llvm-3.3/bin:$PATH
 {% else %}
-ENV PATH=/usr/local/lib/llvm-{{ LLVM }}/bin:$PATH
+ENV PATH=/usr/lib/llvm-{{ LLVM }}/bin:$PATH
 {% endif %}
 
 {% if BUILD == "scons" %}
