@@ -11,7 +11,8 @@ before_script:
   - pip install docker-jinja
 
 script:
-  - docker build -f Dockerfile.base -t igalia/mesa:base .
+  - dj -d Dockerfile.base.jinja -o Dockerfile -e USE_TXC_DXTN=${USE_TXC_DXTN:-no} -e MAKEFLAGS=$MAKEFLAGS
+  - docker build -t igalia/mesa:base .
   # - dj -d Dockerfile.llvm.jinja -o Dockerfile -e LLVM=3.3 -e MAKEFLAGS=$MAKEFLAGS
   # - docker build -f Dockerfile -t igalia/mesa:llvm-3.3 .
   - dj -d Dockerfile.llvm.jinja -o Dockerfile -e LLVM=3.6 -e MAKEFLAGS=$MAKEFLAGS
