@@ -35,6 +35,10 @@ USER local
 ENV MAKEFLAGS={{ MAKEFLAGS }}
 {% endif %}
 
+RUN wget -c https://raw.githubusercontent.com/tanty/mesa-resources/master/testing/full-piglit-run.sh
+
+RUN chmod +x full-piglit-run.sh
+
 RUN git clone --depth 1 git://anongit.freedesktop.org/piglit /home/local/piglit
 
 WORKDIR /home/local/piglit
@@ -45,4 +49,4 @@ RUN cmake . && make
 
 VOLUME /results
 
-CMD [ "/bin/sh", "-c", "cp /home/local/*head.txt /results && ./piglit-run.py tests/all -x texcombine -x texCombine /results" ]
+CMD [ "/bin/sh", "-c", "cat /home/local/mesa-head.txt >> /results/mesa-head.txt && cat /home/local/piglit-head.txt >> /results/piglit-head.txt && export MESA_COMMIT=$(grep commit /home/local/mesa-head.txt | cut -d \" \" -f 2) && export FPR_RUN_PIGLIT=true && export FPR_PIGLIT_PATH=/home/local/piglit && export FPR_PIGLIT_REPORTS_PATH=/results && /home/local/full-piglit-run.sh i965 $MESA_COMMIT && /home/local/full-piglit-run.sh llvmpipe $MESA_COMMIT && /home/local/full-piglit-run.sh swr $MESA_COMMIT && /home/local/full-piglit-run.sh softpipe $MESA_COMMIT" ]
