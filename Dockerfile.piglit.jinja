@@ -5,7 +5,7 @@
 #  dj -d Dockerfile.piglit.jinja -o Dockerfile        \
 #    -e RELEASE=master   # master, 17.0, 13.0         \
 #    [-e MAKEFLAGS=-j2]  # -j2, -j4 ...
-#  docker build --pull -t igalia/mesa:piglit .
+#  docker build --pull -f Dockerfile -t igalia/mesa:piglit .
 #  rm Dockerfile
 # ~~~
 #
