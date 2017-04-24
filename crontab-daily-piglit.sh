@@ -2,6 +2,9 @@
 
 PATH=${HOME}/.local/bin$(echo :$PATH | sed -e s@:${HOME}/.local/bin@@g)
 
+DISPLAY="${DISPLAY:-:0.0}"
+export -p DISPLAY
+
 # PATH to the mesa-dockerfiles.git repository
 MESA_DOCKER_FILES=$HOME/mesa-dockerfiles.git
 # PATH where to place the piglit results
