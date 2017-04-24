@@ -6,9 +6,9 @@ DISPLAY="${DISPLAY:-:0.0}"
 export -p DISPLAY
 
 # PATH to the mesa-dockerfiles.git repository
-MESA_DOCKER_FILES=$HOME/mesa-dockerfiles.git
+MESA_DOCKER_FILES="${MESA_DOCKER_FILES:-$HOME/mesa-dockerfiles.git}"
 # PATH where to place the piglit results
-PIGLIT_RESULTS=$HOME/i965/piglit-results
+PIGLIT_RESULTS="${PIGLIT_RESULTS:-$HOME/i965/piglit-results}"
 
 function cleanup {
     if [ "x${CONTAINER}" == "x" ]; then
