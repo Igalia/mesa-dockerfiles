@@ -31,7 +31,9 @@ CONTAINER=$(docker build -q --pull -f Dockerfile -t igalia/mesa:piglit .)
 rm Dockerfile
 
 if [ -d "${PIGLIT_RESULTS}" ]; then
-    docker run --privileged --rm -t -v "${PIGLIT_RESULTS}":/results:Z  -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix igalia/mesa:piglit
+    for i in i965 llvmpipe swr softpipe; do
+	docker run --privileged --rm -t -v "${PIGLIT_RESULTS}":/results:Z  -e DISPLAY=unix$DISPLAY -e GL_DRIVER=$i -v /tmp/.X11-unix:/tmp/.X11-unix igalia/mesa:piglit
+    done
 else
     cleanup 2
 fi
