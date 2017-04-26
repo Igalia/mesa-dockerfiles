@@ -5,7 +5,7 @@
 #  dj -d Dockerfile.llvm.jinja -o Dockerfile       \
 #    -e LLVM=3.3            # 3.3, 3.6, 3.8 or 3.9 \
 #    [-e MAKEFLAGS=-j2]     # -j2, -j4 ...
-#  docker build --pull -f Dockerfile -t igalia/mesa:base .
+#  docker build --pull -f Dockerfile -t igalia/mesa:{{ LLVM }} .
 #  rm Dockerfile
 # ~~~
 #
