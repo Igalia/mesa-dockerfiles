@@ -21,10 +21,12 @@ FROM igalia/mesa:{{ RELEASE }}
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
+USER root
+
 RUN apt-get update                                                      \
   && apt-get -y --no-install-recommends install cmake libwaffle-dev     \
     libpng-dev libxkbcommon-dev libglu1-mesa-dev libegl1-mesa-dev       \
-    ccache python3-setuptools python3-pip                               \
+    python3-setuptools python3-pip                                      \
   && rm -fr /var/lib/apt/lists/*
 
 RUN pip3 install numpy six mako
@@ -34,6 +36,8 @@ USER local
 {% if MAKEFLAGS %}
 ENV MAKEFLAGS={{ MAKEFLAGS }}
 {% endif %}
+
+WORKDIR /home/local
 
 RUN wget -c https://raw.githubusercontent.com/tanty/mesa-resources/master/testing/full-piglit-run.sh
 
@@ -45,14 +49,4 @@ WORKDIR /home/local/piglit
 
 RUN git show --stat > /home/local/piglit-head.txt
 
-RUN cmake . && make
-
 VOLUME /results
-
-ENV PATH=/usr/lib/ccache:$PATH
-
-ENV CCACHE_DIR=/results/docker-ccache
-
-ENV CCACHE_UMASK=002
-
-CMD [ "/bin/sh", "-c", "cat /home/local/mesa-head.txt >> /results/mesa-head.txt && cat /home/local/piglit-head.txt >> /results/piglit-head.txt && export MESA_COMMIT=$(grep commit /home/local/mesa-head.txt | cut -d \" \" -f 2) && export FPR_CREATE_PIGLIT_REPORT=true && export FPR_RUN_PIGLIT=true && export FPR_PIGLIT_PATH=/home/local/piglit && export FPR_PIGLIT_REPORTS_PATH=/results && /home/local/full-piglit-run.sh $GL_DRIVER $MESA_COMMIT" ]
