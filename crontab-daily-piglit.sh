@@ -1,5 +1,19 @@
 #!/bin/bash
 
+usage()
+{
+    echo -e "\e[31mUSAGE:"
+    echo -e "\e[31m$0 <release>"
+}
+
+if ! [ $1 ]; then
+    usage
+    exit -1
+fi
+
+RELEASE="${1}"
+shift
+
 PATH=${HOME}/.local/bin$(echo :$PATH | sed -e s@:${HOME}/.local/bin@@g)
 
 DISPLAY="${DISPLAY:-:0.0}"
@@ -26,7 +40,7 @@ fi
 
 git pull -q
 
-dj -q -d Dockerfile.piglit.jinja -o Dockerfile -e RELEASE=17.0 -e MAKEFLAGS=-j2
+dj -q -d Dockerfile.piglit.jinja -o Dockerfile -e RELEASE="${RELEASE}" -e MAKEFLAGS=-j2
 CONTAINER=$(docker build -q --pull -f Dockerfile -t igalia/mesa:piglit .)
 rm Dockerfile
 
