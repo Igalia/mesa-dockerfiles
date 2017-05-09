@@ -91,7 +91,7 @@ check_option_args() {
 #   it exits
 function cleanup {
     if [ "x$1" == "x0" ]; then
-        docker rmi image-piglit >&"${CDP_OUTPUT}" 2>&1
+	$CDP_CLEAN && docker rmi image-piglit >&"${CDP_OUTPUT}" 2>&1
     fi
 
     exit $1
@@ -132,6 +132,7 @@ function run_piglit_tests {
 	usage
 	return 1
     fi
+
     if [ "${CDP_MESA_DRIVERS:-x}" == "x" ]; then
 	echo ""
 	echo "At least one mesa3d driver must be passed."
@@ -215,6 +216,7 @@ Where "path" is a relative path to a git module, including '.'.
 
 Options:
   --dry-run               Does everything except running the tests
+  --no-clean              Do not clean the created image
   --quiet                 Be quiet
   --verbose               Be verbose
   --help                  Display this help and exit successfully
@@ -246,6 +248,10 @@ do
     # Does everything except running the tests
     --dry-run)
 	CDP_DRY_RUN=true
+	;;
+    # Do not clean the created image
+    --no-clean)
+	CDP_CLEAN=false
 	;;
     # Be quiet
     --quiet)
@@ -332,6 +338,11 @@ CDP_VERBOSE="${CDP_VERBOSE:-false}"
 # --------
 
 CDP_DRY_RUN="${CDP_DRY_RUN:-false}"
+
+# Cleaning?
+# ---------
+
+CDP_CLEAN="${CDP_CLEAN:-true}"
 
 # ---
 
