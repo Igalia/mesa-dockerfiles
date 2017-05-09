@@ -106,7 +106,7 @@ function cleanup {
 # returns:
 #   0 is success, an error code otherwise
 function header {
-    if $CDP_QUIET; then
+    if ! $CDP_QUIET; then
 	TIMESTAMP=`date +%Y%m%d%H%M%S`
 	echo "Running $1 at $TIMESTAMP"
 	echo ""
