@@ -11,6 +11,24 @@ DISPLAY="${DISPLAY:-:0.0}"
 export -p DISPLAY
 
 #------------------------------------------------------------------------------
+#			Function: check_verbosity
+#------------------------------------------------------------------------------
+#
+# check if quiet and verbose are both passed:
+# returns:
+#   if it returns, everything is good
+#   otherwise it exit's
+check_verbosity() {
+    if ${CDP_QUIET:-false} && ${CDP_VERBOSE:-false}; then
+	echo ""
+	echo "The --quiet and --verbose flags are incompatible"
+	echo ""
+	usage
+	exit 1
+    fi
+}
+
+#------------------------------------------------------------------------------
 #			Function: check_local_changes
 #------------------------------------------------------------------------------
 #
@@ -165,9 +183,12 @@ function run_piglit_tests {
     docker rm container-piglit >&"${CDP_OUTPUT}" 2>&1
 
     for i in $CDP_MESA_DRIVERS; do
-	if $CDP_DRY_RUN; then
-	    $CDP_VERBOSE && echo "Processing driver $i ..."
-	else
+	if ! $CDP_QUIET; then
+	    echo ""
+	    echo "Processing driver $i ..."
+	    echo ""
+	fi
+	if ! $CDP_DRY_RUN; then
 	    docker run --privileged --rm -t -v "${CDP_PIGLIT_RESULTS_DIR}":/results:Z \
 		   -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
 		   -e FPR_VERBOSE=$CDP_VERBOSE \
@@ -229,10 +250,12 @@ do
     # Be quiet
     --quiet)
 	CDP_QUIET=true
+	check_verbosity
 	;;
     # Be verbose
     --verbose)
 	CDP_VERBOSE=true
+	check_verbosity
 	;;
     # Display this help and exit successfully
     --help)
