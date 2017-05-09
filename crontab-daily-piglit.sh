@@ -80,6 +80,26 @@ function cleanup {
 }
 
 #------------------------------------------------------------------------------
+#			Function: header
+#------------------------------------------------------------------------------
+#
+# prints a header, if not quiet
+#   $1 - name to print out
+# returns:
+#   0 is success, an error code otherwise
+function header {
+    if $CDP_QUIET; then
+	TIMESTAMP=`date +%Y%m%d%H%M%S`
+	echo "Running $1 at $TIMESTAMP"
+	echo ""
+	df -h
+	echo ""
+    fi
+
+    return 0
+}
+
+#------------------------------------------------------------------------------
 #			Function: run_piglit_tests
 #------------------------------------------------------------------------------
 #
@@ -130,12 +150,12 @@ function run_piglit_tests {
 	return 6
     fi
 
-    git pull ${CDP_QUIET}
+    git pull ${CDP_SILENCE}
 
-    dj ${CDP_QUIET} -d Dockerfile.piglit.jinja -o Dockerfile -e RELEASE="${CDP_RELEASE}" -e MAKEFLAGS=-j2
-    # CDP_QUIET is not enough for docker build.
+    dj ${CDP_SILENCE} -d Dockerfile.piglit.jinja -o Dockerfile -e RELEASE="${CDP_RELEASE}" -e MAKEFLAGS=-j2
+    # CDP_SILENCE is not enough for docker build.
     # Therefore, we mute with CDP_OUT as with other commands ...
-    docker build ${CDP_QUIET} --pull -f Dockerfile -t image-piglit . >&"${CDP_OUTPUT}" 2>&1
+    docker build ${CDP_SILENCE} --pull -f Dockerfile -t image-piglit . >&"${CDP_OUTPUT}" 2>&1
     rm Dockerfile
     docker run -v "${CDP_DOCKER_CCACHE_DIR}":/home/local/.ccache \
 	   -v "${CDP_PIGLIT_RESULTS_DIR}":/results:Z \
@@ -174,6 +194,7 @@ Where "path" is a relative path to a git module, including '.'.
 
 Options:
   --dry-run               Does everything except running the tests
+  --quiet                 Be quiet
   --verbose               Be verbose
   --help                  Display this help and exit successfully
   --mesa-dockerfiles-dir  PATH to the mesa-dockerfiles.git repository
@@ -204,6 +225,10 @@ do
     # Does everything except running the tests
     --dry-run)
 	CDP_DRY_RUN=true
+	;;
+    # Be quiet
+    --quiet)
+	CDP_QUIET=true
 	;;
     # Be verbose
     --verbose)
@@ -270,6 +295,11 @@ CDP_PIGLIT_RESULTS_DIR="${CDP_PIGLIT_RESULTS_DIR:-$HOME/i965/piglit-results}"
 # PATH where for ccache's directory
 CDP_DOCKER_CCACHE_DIR="${CDP_DOCKER_CCACHE_DIR:-$HOME/i965/piglit-results/docker-ccache}"
 
+# Quiet?
+# ------
+
+CDP_QUIET="${CDP_QUIET:-false}"
+
 # Verbose?
 # --------
 
@@ -284,11 +314,13 @@ CDP_DRY_RUN="${CDP_DRY_RUN:-false}"
 
 if ${CDP_VERBOSE}; then
     CDP_OUTPUT=1
-    CDP_QUIET=""
+    CDP_SILENCE=""
 else
     CDP_OUTPUT=/dev/null
-    CDP_QUIET="-q"
+    CDP_SILENCE="-q"
 fi
+
+header $0
 
 run_piglit_tests
 
