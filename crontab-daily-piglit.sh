@@ -188,28 +188,6 @@ HELP
 #------------------------------------------------------------------------------
 #
 
-# Paths
-# -----
-
-# PATH to the mesa-dockerfiles.git repository
-CDP_MESA_DOCKERFILES_DIR="${CDP_MESA_DOCKERFILES_DIR:-$HOME/mesa-dockerfiles.git}"
-# PATH where to place the piglit results
-CDP_PIGLIT_RESULTS_DIR="${CDP_PIGLIT_RESULTS_DIR:-$HOME/i965/piglit-results}"
-# PATH where for ccache's directory
-CDP_DOCKER_CCACHE_DIR="${CDP_DOCKER_CCACHE_DIR:-$HOME/i965/piglit-results/docker-ccache}"
-
-# Verbose?
-# --------
-
-CDP_VERBOSE="${CDP_VERBOSE:-false}"
-
-# dry run?
-# --------
-
-CDP_DRY_RUN="${CDP_DRY_RUN:-false}"
-
-# ---
-
 # Choose which grep program to use (on Solaris, must be gnu grep)
 if [ "x$CDP_GREP" = "x" ] ; then
     if [ -x /usr/gnu/bin/grep ] ; then
@@ -281,6 +259,28 @@ do
 
     shift
 done
+
+# Paths
+# -----
+
+# PATH to the mesa-dockerfiles.git repository
+CDP_MESA_DOCKERFILES_DIR="${CDP_MESA_DOCKERFILES_DIR:-$HOME/mesa-dockerfiles.git}"
+# PATH where to place the piglit results
+CDP_PIGLIT_RESULTS_DIR="${CDP_PIGLIT_RESULTS_DIR:-$HOME/i965/piglit-results}"
+# PATH where for ccache's directory
+CDP_DOCKER_CCACHE_DIR="${CDP_DOCKER_CCACHE_DIR:-$HOME/i965/piglit-results/docker-ccache}"
+
+# Verbose?
+# --------
+
+CDP_VERBOSE="${CDP_VERBOSE:-false}"
+
+# dry run?
+# --------
+
+CDP_DRY_RUN="${CDP_DRY_RUN:-false}"
+
+# ---
 
 if ${CDP_VERBOSE}; then
     CDP_OUTPUT=1
