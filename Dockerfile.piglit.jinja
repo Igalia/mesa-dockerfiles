@@ -43,6 +43,8 @@ RUN wget -c https://raw.githubusercontent.com/tanty/mesa-resources/master/testin
 
 RUN chmod +x full-piglit-run.sh
 
+RUN wget -c https://raw.githubusercontent.com/tanty/mesa-resources/master/testing/f-p-r-patterns.txt
+
 RUN git clone --depth 1 git://anongit.freedesktop.org/piglit /home/local/piglit
 
 WORKDIR /home/local/piglit

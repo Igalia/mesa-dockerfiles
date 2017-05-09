@@ -183,6 +183,10 @@ function run_piglit_tests {
     docker commit container-piglit image-piglit >&"${CDP_OUTPUT}" 2>&1
     docker rm container-piglit >&"${CDP_OUTPUT}" 2>&1
 
+    if $CDP_VERBOSE; then
+	CDP_EXTRA_ARGS="--verbose $CDP_EXTRA_ARGS"
+    fi
+
     for i in $CDP_MESA_DRIVERS; do
 	if ! $CDP_QUIET; then
 	    echo ""
@@ -192,9 +196,9 @@ function run_piglit_tests {
 	if ! $CDP_DRY_RUN; then
 	    docker run --privileged --rm -t -v "${CDP_PIGLIT_RESULTS_DIR}":/results:Z \
 		   -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
-		   -e FPR_VERBOSE=$CDP_VERBOSE \
+		   -e FPR_EXTRA_ARGS="$CDP_EXTRA_ARGS" \
 		   -e GL_DRIVER=$i image-piglit \
-		   "/bin/sh" "-c" "cat /home/local/mesa-head.txt >> /results/mesa-head.txt && cat /home/local/piglit-head.txt >> /results/piglit-head.txt && export MESA_COMMIT=\$(grep commit /home/local/mesa-head.txt | cut -d \" \" -f 2) && export FPR_CREATE_PIGLIT_REPORT=true && export FPR_RUN_PIGLIT=true && export FPR_PIGLIT_PATH=/home/local/piglit && export FPR_PIGLIT_REPORTS_PATH=/results && /home/local/full-piglit-run.sh \$GL_DRIVER \$MESA_COMMIT"
+		   "/bin/sh" "-c" "cat /home/local/mesa-head.txt >> /results/mesa-head.txt && cat /home/local/piglit-head.txt >> /results/piglit-head.txt && export MESA_COMMIT=\$(grep commit /home/local/mesa-head.txt | cut -d \" \" -f 2) && /home/local/full-piglit-run.sh \$FPR_EXTRA_ARGS --run-piglit --create-piglit-report --base-path /home/local --piglit-path /home/local/piglit --piglit-results-path /results --driver \$GL_DRIVER --commit \$MESA_COMMIT"
 	fi
     done
 
