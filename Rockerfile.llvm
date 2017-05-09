@@ -2,11 +2,14 @@
 # This builds the base image for building Mesa.
 #
 # ~~~
-#  dj -d Dockerfile.llvm.jinja -o Dockerfile       \
-#    -e LLVM=3.3            # 3.3, 3.6, 3.8 or 3.9 \
-#  docker build --pull -f Dockerfile -t igalia/mesa:{{ LLVM }} .
-#  rm Dockerfile
+#  rocker build -f Rockerfile.llvm      \
+#    --var LLVM=3.3             # 3.3, 3.6, 3.8 or 3.9
 # ~~~
+#
+# Environment variables that are used in the build:
+#  - DOCKER_IMAGE: name of the final image to be tagged (default: igalia/mesa)
+#  - MAKEFLAGS: flags to pass to make (e.g., "-j8")
+#  - CCACHE_DIR: ccache directory (default: ~/.ccache)
 #
 # LLVM 3.3 package has been created with checkinstall using Base image
 #
@@ -23,28 +26,30 @@
 #  ~~~
 #
 
-FROM igalia/mesa:base
+{{ $image := (or .Env.DOCKER_IMAGE "igalia/mesa") }}
+{{ $ccachedir := (or .Env.CCACHE_DIR "~/.ccache") }}
+
+FROM {{ $image }}:base
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
-{% if LLVM == "3.9" %}
+{{ if eq .LLVM "3.9" }}
 RUN apt-get update                                                            \
   && apt-get --no-install-recommends -y install gnupg                         \
   && wget -qO - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -     \
-  && echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-3.9 main" >> /etc/apt/sources.list  \
-  && apt-get update                                                           \
-  && apt-get --no-install-recommends -y install libclang-3.9-dev llvm-3.9-dev \
+  && echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-3.9 main" >> /etc/apt/sources.list \
   && rm -fr /var/lib/apt/lists/*
-{% elif LLVM == "3.8" %}
-RUN apt-get update                                                            \
-  && apt-get --no-install-recommends -y install libclang-3.8-dev llvm-3.8-dev \
-  && rm -fr /var/lib/apt/lists/*
-{% elif LLVM == "3.6" %}
-RUN apt-get update                                                            \
-  && apt-get --no-install-recommends -y install libclang-3.6-dev llvm-3.6-dev \
-  && rm -fr /var/lib/apt/lists/*
-{% elif LLVM == "3.3" %}
+{{ end }}
+
+{{ if eq .LLVM "3.3" }}
 RUN wget https://people.igalia.com/jasuarez/packages/llvm-3.3_3.3-+checkinstall1_amd64.deb      \
   && dpkg -i llvm-3.3_3.3-+checkinstall1_amd64.deb                                              \
   && rm llvm-3.3_3.3-+checkinstall1_amd64.deb
-{% endif %}
+{{ else }}
+RUN apt-get update                                                            \
+  && apt-get --no-install-recommends -y install libclang-{{ .LLVM }}-dev      \
+    llvm-{{ .LLVM }}-dev                                                      \
+  && rm -fr /var/lib/apt/lists/*
+{{ end }}
+
+TAG {{ $image }}:llvm-{{ .LLVM }}

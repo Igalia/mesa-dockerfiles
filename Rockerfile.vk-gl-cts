@@ -1,26 +1,33 @@
 #
-# This builds and installs Vulkan/OpenGL CTS. Requires `docker-jinja`.
+# This builds and installs Vulkan/OpenGL CTS.
 #
 # Ensure you have cloned vk-gl-cts and Loaderandvalidationlayers repositories.
 #
 # ~~~
-#  dj -d Dockerfile.vk-gl-cts.jinja -o Dockerfile               \
-#    -e VIDEO_GID=`getent group video | cut -f3 -d:`            \
-#    -e RELEASE=master   # master, 17.0, 13.0                   \
-#    [-e MAKEFLAGS=-j2]  # -j2, -j4 ...
-#  docker build --pull -t igalia/mesa:vk-gl-cts .
-#  rm Dockerfile
+#  rocker build -f Rockerfile.vk-gl-cts                                 \
+#    --var VIDEO_GID=`getent group video | cut -f3 -d:`                 \
+#    --var TAG=vk-gl-cts     # vk-gl-cts-17.0, vk-gl-cts-13.0, ...      \
+#    --var RELEASE=master    # master, pre-release-17.0, pre-release-13.0, ...
 # ~~~
 #
-# To run, you can pass CTS envvar as "opengl" or "vulkan" to run either OpenGL or Vulkan CTS tests, respectively.
+# Environment variables that are used in the build:
+#  - DOCKER_IMAGE: name of the final image to be tagged (default: igalia/mesa)
+#  - MAKEFLAGS: flags to pass to make (e.g., "-j8")
+#  - CCACHE_DIR: ccache directory (default: ~/.ccache)
+#
+# To run, you can pass CTS envvar as "opengl" or "vulkan" to run either OpenGL
+# or Vulkan CTS tests, respectively.
 #
 # ~~~
-#   mkdir -p -m 0777 ~/my_results_dir
-#   docker run --device=/dev/dri/renderD128 --rm -t -v ~/my_results_dir:/results:Z  [-e CTS=vulkan|opengl] -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix igalia/mesa:vk-gl-cts
+#   mkdir -p -m777 ~/my_results_dir
+#   docker run --privileged --rm -t -v ~/my_results_dir:/results:Z -e CTS=vulkan -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix igalia/mesa:vk-gl-cts
 # ~~~
 #
 
-FROM igalia/mesa:{{ RELEASE }}
+{{ $image := (or .Env.DOCKER_IMAGE "igalia/mesa") }}
+{{ $ccachedir := (or .Env.CCACHE_DIR "~/.ccache") }}
+
+FROM {{ $image }}:{{ .RELEASE }}
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
@@ -30,17 +37,21 @@ RUN apt-get update                                                          \
 
 RUN pip install six
 
-# {{ VIDEO_GID }} is the gid for outside's video group. Required to access to
+# {{ .VIDEO_GID }} is the gid for outside's video group. Required to access to
 # /dev/dri/renderD128
-RUN usermod -G {{ VIDEO_GID }} -a local
+RUN usermod -G {{ .VIDEO_GID }} -a local
 
 USER local
 
-{% if MAKEFLAGS %}
-ENV MAKEFLAGS={{ MAKEFLAGS }}
-{% endif %}
+{{ if .Env.MAKEFLAGS }}
+ENV MAKEFLAGS={{ .Env.MAKEFLAGS }}
+{{ end }}
 
-RUN git clone http://github.com/dcbaker/piglit.git -b wip/deqp-group-at-a-time /home/local/dcbaker-piglit
+MOUNT {{ $ccachedir }}:/home/local/.ccache:Z
+
+ENV PATH=/usr/lib/ccache:$PATH
+
+RUN git clone --depth 1 http://github.com/dcbaker/piglit.git -b wip/deqp-group-at-a-time /home/local/dcbaker-piglit
 
 ADD vk-gl-cts /home/local/vk-gl-cts
 
@@ -79,3 +90,5 @@ ENV CTS=vulkan
 VOLUME /results
 
 CMD [ "/bin/sh", "-c", "cp /home/local/*head.txt /results && if [ $CTS = opengl ]; then ./piglit-run.py tests/cts_gl /results; else ./piglit-run.py -c --deqp-mode=group tests/deqp_vk /results; fi" ]
+
+TAG {{ $image }}:{{ .TAG }}
