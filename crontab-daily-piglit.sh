@@ -10,6 +10,9 @@ PATH=${HOME}/.local/bin$(echo :$PATH | sed -e s@:${HOME}/.local/bin@@g)
 DISPLAY="${DISPLAY:-:0.0}"
 export -p DISPLAY
 
+MAKEFLAGS=-j$(getconf _NPROCESSORS_ONLN)
+export MAKEFLAGS
+
 #------------------------------------------------------------------------------
 #			Function: check_verbosity
 #------------------------------------------------------------------------------
@@ -91,7 +94,7 @@ check_option_args() {
 #   it exits
 function cleanup {
     if [ "x$1" == "x0" ]; then
-	$CDP_CLEAN && docker rmi image-piglit >&"${CDP_OUTPUT}" 2>&1
+        ${CDP_CLEAN} && docker rmi igalia/mesa:piglit >&"${CDP_OUTPUT}" 2>&1
     fi
 
     exit $1
@@ -157,9 +160,9 @@ function run_piglit_tests {
 	return 4
     fi
 
-    if [ ! -d "${CDP_DOCKER_CCACHE_DIR}" ]; then
+    if [ ! -d "${CCACHE_DIR}" ]; then
 	echo ""
-	echo "${CDP_DOCKER_CCACHE_DIR} directory doesn't exist."
+	echo "${CCACHE_DIR} directory doesn't exist."
 	echo ""
 	return 5
     fi
@@ -171,17 +174,7 @@ function run_piglit_tests {
 
     git pull ${CDP_SILENCE}
 
-    dj ${CDP_SILENCE} -d Dockerfile.piglit.jinja -o Dockerfile -e RELEASE="${CDP_RELEASE}" -e MAKEFLAGS=-j2
-    # CDP_SILENCE is not enough for docker build.
-    # Therefore, we mute with CDP_OUT as with other commands ...
-    docker build ${CDP_SILENCE} --pull -f Dockerfile -t image-piglit . >&"${CDP_OUTPUT}" 2>&1
-    rm Dockerfile
-    docker run -v "${CDP_DOCKER_CCACHE_DIR}":/home/local/.ccache \
-	   -v "${CDP_PIGLIT_RESULTS_DIR}":/results:Z \
-	   --name container-piglit image-piglit \
-	   "/bin/sh" "-c" "cmake . && make" >&"${CDP_OUTPUT}" 2>&1
-    docker commit container-piglit image-piglit >&"${CDP_OUTPUT}" 2>&1
-    docker rm container-piglit >&"${CDP_OUTPUT}" 2>&1
+    rocker build --pull -f Rockerfile.piglit --var TAG=piglit --var RELEASE="${CDP_RELEASE}" >&"${CDP_OUTPUT}" 2>&1
 
     if $CDP_VERBOSE; then
 	CDP_EXTRA_ARGS="--verbose $CDP_EXTRA_ARGS"
@@ -197,8 +190,7 @@ function run_piglit_tests {
 	    docker run --privileged --rm -t -v "${CDP_PIGLIT_RESULTS_DIR}":/results:Z \
 		   -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
 		   -e FPR_EXTRA_ARGS="$CDP_EXTRA_ARGS" \
-		   -e GL_DRIVER=$i image-piglit \
-		   "/bin/sh" "-c" "cat /home/local/mesa-head.txt >> /results/mesa-head.txt && cat /home/local/piglit-head.txt >> /results/piglit-head.txt && export MESA_COMMIT=\$(grep commit /home/local/mesa-head.txt | cut -d \" \" -f 2) && /home/local/full-piglit-run.sh \$FPR_EXTRA_ARGS --run-piglit --create-piglit-report --base-path /home/local --piglit-path /home/local/piglit --piglit-results-path /results --driver \$GL_DRIVER --commit \$MESA_COMMIT"
+		   -e GL_DRIVER=$i igalia/mesa:piglit
 	fi
     done
 
@@ -294,7 +286,7 @@ do
     --docker-ccache-dir)
 	check_option_args $1 $2
 	shift
-	CDP_DOCKER_CCACHE_DIR=$1
+	CCACHE_DIR=$1
 	;;
     --*)
 	echo ""
@@ -326,7 +318,7 @@ CDP_MESA_DOCKERFILES_DIR="${CDP_MESA_DOCKERFILES_DIR:-$HOME/mesa-dockerfiles.git
 # PATH where to place the piglit results
 CDP_PIGLIT_RESULTS_DIR="${CDP_PIGLIT_RESULTS_DIR:-$HOME/i965/piglit-results}"
 # PATH where for ccache's directory
-CDP_DOCKER_CCACHE_DIR="${CDP_DOCKER_CCACHE_DIR:-$HOME/i965/piglit-results/docker-ccache}"
+CCACHE_DIR="${CCACHE_DIR:-$HOME/i965/piglit-results/docker-ccache}"
 
 # Quiet?
 # ------

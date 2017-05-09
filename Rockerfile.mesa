@@ -1,0 +1,97 @@
+#
+# This builds and installs Mesa.
+#
+# ~~~
+#  rocker build -f Rockerfile.mesa                                                      \
+#    --var BUILD=autotools      # scons, autotools, windows, distcheck                  \
+#    --var LLVM=3.3             # 3.3, 3.6, 3.8 or 3.9                                  \
+#    --var TAG=master           # master, pre-release-17.0, pre-release-13.0, ...       \
+#    [---var RELEASE=master]    # master, pre-release/17.0, pre-release/13.0, ...
+# ~~~
+#
+# Environment variables that are used in the build:
+#  - DOCKER_IMAGE: name of the final image to be tagged (default: igalia/mesa)
+#  - MAKEFLAGS: flags to pass to make (e.g., "-j8")
+#  - CCACHE_DIR: ccache directory (default: ~/.ccache)
+#
+
+{{ $image := (or .Env.DOCKER_IMAGE "igalia/mesa") }}
+{{ $ccachedir := (or .Env.CCACHE_DIR "~/.ccache") }}
+
+{{ if eq .BUILD "windows" }}
+FROM {{ $image }}:base
+{{ else }}
+FROM {{ $image }}:llvm-{{ .LLVM }}
+{{ end }}
+
+LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
+
+RUN apt-get update                                   \
+  && apt-get -y --no-install-recommends install git  \
+     {{ if eq .BUILD "windows" }}mingw-w64{{ end }}  \
+  && rm -fr /var/lib/apt/lists/*
+
+USER local
+
+{{ if .Env.MAKEFLAGS }}
+ENV MAKEFLAGS={{ .Env.MAKEFLAGS }}
+ENV SCONSFLAGS={{ .Env.MAKEFLAGS }}
+{{ end }}
+
+{{ if .RELEASE }}
+RUN git clone https://github.com/Igalia/release-mesa --depth 1 -b {{ .RELEASE }} /home/local/mesa
+{{ else }}
+ADD . /home/local/mesa
+RUN sudo chown -R local:local /home/local/mesa
+{{ end }}
+
+WORKDIR /home/local
+
+MOUNT {{ $ccachedir }}:/home/local/.ccache:Z
+
+ENV PATH=/usr/lib/ccache:/usr/lib/llvm-{{ .LLVM }}/bin:$PATH
+
+RUN export DRM_VERSION=`cat /home/local/mesa/configure.ac | egrep ^LIBDRM.*REQUIRED| cut -f2 -d= | sort -nr | head -n 1` \
+  && wget http://dri.freedesktop.org/libdrm/libdrm-$DRM_VERSION.tar.bz2                                                  \
+  && tar -jxvf libdrm-$DRM_VERSION.tar.bz2                                                                               \
+  && rm libdrm-$DRM_VERSION.tar.bz2                                                                                      \
+  && cd libdrm-$DRM_VERSION                                                                                              \
+  && ./configure --enable-freedreno --enable-vc4 --enable-etnaviv-experimental-api                                       \
+  && make                                                                                                                \
+  && sudo make install                                                                                                   \
+  && sudo rm -fr ../libdrm-$DRM_VERSION                                                                                  \
+  && unset DRM_VERSION
+
+WORKDIR /home/local/mesa
+
+RUN git show --stat > /home/local/mesa-head.txt
+
+{{ if eq .BUILD "scons" }}
+RUN scons llvm=1                  \
+  && scons llvm=1 check           \
+  && sudo rm -fr /home/local/mesa
+{{ else if eq .BUILD "windows" }}
+RUN scons platform=windows toolchain=crossmingw \
+  && sudo rm -fr /home/local/mesa
+{{ else if eq .BUILD "distcheck" }}
+RUN ./autogen.sh                  \
+  && make distcheck               \
+  && sudo rm -fr /home/local/mesa
+{{ else }}
+RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                           \
+  --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                       \
+  --with-gallium-drivers=i915,nouveau,r300{{ if ge .LLVM "3.8" }},r600,radeonsi{{ end }},freedreno,svga,swrast{{ if ge .LLVM "3.9" }},swr{{ end }},vc4,virgl,etnaviv,imx    \
+  --with-vulkan-drivers=intel{{ if ge .LLVM "3.9" }},radeon{{ end }}            \
+  --enable-llvm --enable-llvm-shared-libs                                       \
+  --enable-glx-tls --enable-gbm --enable-egl                                    \
+  && make                                                                       \
+  && make check                                                                 \
+  && sudo make install                                                          \
+  && sudo rm -fr /home/local/mesa
+{{ end }}
+
+WORKDIR /home/local
+
+USER root
+
+TAG {{ $image }}:{{ .TAG }}

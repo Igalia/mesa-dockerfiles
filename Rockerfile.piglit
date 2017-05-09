@@ -1,0 +1,73 @@
+#
+# This builds and installs Piglit.
+#
+# ~~~
+#  rocker build -f Rockerfile.piglit                            \
+#    --var TAG=piglit           # piglit-17.0, piglit-13.0, ... \
+#    --var RELEASE=master       # master, pre-release-17.0, pre-release-13.0, ...
+# ~~~
+#
+# Environment variables that are used in the build:
+#  - DOCKER_IMAGE: name of the final image to be tagged (default: igalia/mesa)
+#  - MAKEFLAGS: flags to pass to make (e.g., "-j8")
+#  - CCACHE_DIR: ccache directory (default: ~/.ccache)
+#
+# To run
+#
+# ~~~
+#   mkdir -p -m777 ~/my_results_dir
+#   docker run --privileged --rm -t -v ~/my_results_dir:/results:Z  \
+#              -v /tmp/.X11-unix:/tmp/.X11-unix \
+#              -e FPR_EXTRA_ARGS="--verbose" \
+#              -e GL_DRIVER=i965 igalia/mesa:piglit
+# ~~~
+#
+# GL_DRIVER = [ i965, nouveau, nvidia, radeon, amd, llvmpipe, swr, softpipe ]
+#
+
+{{ $image := (or .Env.DOCKER_IMAGE "igalia/mesa") }}
+{{ $ccachedir := (or .Env.CCACHE_DIR "~/.ccache") }}
+
+FROM {{ $image }}:{{ .RELEASE }}
+
+LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
+
+RUN apt-get update                                                      \
+  && apt-get -y --no-install-recommends install cmake libwaffle-dev     \
+    libpng-dev libxkbcommon-dev libglu1-mesa-dev libegl1-mesa-dev       \
+    python3-setuptools python3-pip                                      \
+  && rm -fr /var/lib/apt/lists/*
+
+RUN pip3 install numpy six mako
+
+USER local
+
+{{ if .Env.MAKEFLAGS }}
+ENV MAKEFLAGS={{ .Env.MAKEFLAGS }}
+{{ end }}
+
+WORKDIR /home/local
+
+RUN wget -c https://raw.githubusercontent.com/tanty/mesa-resources/master/testing/full-piglit-run.sh
+
+RUN chmod +x full-piglit-run.sh
+
+RUN wget -c https://raw.githubusercontent.com/tanty/mesa-resources/master/testing/f-p-r-patterns.txt
+
+RUN git clone --depth 1 git://anongit.freedesktop.org/piglit /home/local/piglit
+
+WORKDIR /home/local/piglit
+
+RUN git show --stat > /home/local/piglit-head.txt
+
+MOUNT {{ $ccachedir }}:/home/local/.ccache:Z
+
+ENV PATH=/usr/lib/ccache:$PATH
+
+RUN cmake . && make
+
+VOLUME /results
+
+CMD [ "/bin/sh", "-c", "cat /home/local/mesa-head.txt >> /results/mesa-head.txt && cat /home/local/piglit-head.txt >> /results/piglit-head.txt && export MESA_COMMIT=$(grep commit /home/local/mesa-head.txt | cut -d \" \" -f 2) && /home/local/full-piglit-run.sh $FPR_EXTRA_ARGS --run-piglit --create-piglit-report --base-path /home/local --piglit-path /home/local/piglit --piglit-results-path /results --driver $GL_DRIVER --commit $MESA_COMMIT" ]
+
+TAG {{ $image }}:{{ .TAG }}
