@@ -4,7 +4,7 @@
 # ~~~
 #  rocker build -f Rockerfile.mesa [--attach]                                           \
 #    --var BUILD=autotools      # scons, autotools, windows, distcheck                  \
-#    --var LLVM=3.3             # 3.3, 3.6, 3.8 or 3.9                                  \
+#    [--var LLVM=3.3]           # 3.3, 3.6, 3.8, 3.9 or 4.0                             \
 #    --var TAG=master           # master, pre-release-17.0, pre-release-13.0, ...       \
 #    [--var RELEASE=master]     # master, pre-release/17.0, pre-release/13.0, ...
 # ~~~
@@ -17,8 +17,11 @@
 
 {{ $image := (or .Env.DOCKER_IMAGE "igalia/mesa") }}
 {{ $ccachedir := (or .Env.CCACHE_DIR "~/.ccache") }}
+{{ $llvm_version := (or .LLVM "0.0") }}
 
 {{ if eq .BUILD "windows" }}
+FROM {{ $image }}:base
+{{ else if eq $llvm_version "0.0" }}
 FROM {{ $image }}:base
 {{ else }}
 FROM {{ $image }}:llvm-{{ .LLVM }}
@@ -49,7 +52,7 @@ WORKDIR /home/local
 
 MOUNT {{ $ccachedir }}:/home/local/.ccache:Z
 
-ENV PATH=/usr/lib/ccache:/usr/lib/llvm-{{ .LLVM }}/bin:$PATH
+ENV PATH=/usr/lib/ccache:/usr/lib/llvm-{{ $llvm_version }}/bin:$PATH
 
 RUN export DRM_VERSION=`cat /home/local/mesa/configure.ac | egrep ^LIBDRM.*REQUIRED| cut -f2 -d= | sort -nr | head -n 1` \
   && wget http://dri.freedesktop.org/libdrm/libdrm-$DRM_VERSION.tar.bz2                                                  \
@@ -69,9 +72,15 @@ RUN git show --stat > /home/local/mesa-head.txt
 ATTACH [ "/bin/bash" ]
 
 {{ if eq .BUILD "scons" }}
-RUN scons llvm=1                  \
-  && scons llvm=1 check           \
+{{ if eq $llvm_version "0.0" }}
+RUN scons llvm=0               \
+  && scons llvm=0 check        \
   && sudo rm -fr /home/local/mesa
+{{ else }}
+RUN scons llvm=1               \
+  && scons llvm=1 check        \
+  && sudo rm -fr /home/local/mesa
+{{ end }}
 {{ else if eq .BUILD "windows" }}
 RUN scons platform=windows toolchain=crossmingw \
   && sudo rm -fr /home/local/mesa
@@ -80,7 +89,7 @@ RUN ./autogen.sh                  \
   && make distcheck               \
   && sudo rm -fr /home/local/mesa
 {{ else }}
-RUN export LLVM={{ .LLVM }}.0\
+RUN export LLVM={{ $llvm_version }}.0\
   && eval `cat configure.ac | egrep ^LLVM_REQUIRED`                 \
   && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_GALLIUM ; then GALLIUM_DRIVERS=i915,nouveau,r300,vc4,virgl,etnaviv,imx ; fi    \
   && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_R600 ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,r600 ; fi                         \
