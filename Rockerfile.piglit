@@ -2,7 +2,7 @@
 # This builds and installs Piglit.
 #
 # ~~~
-#  rocker build -f Rockerfile.piglit                            \
+#  rocker build -f Rockerfile.piglit [--attach]                 \
 #    --var TAG=piglit           # piglit-17.0, piglit-13.0, ... \
 #    --var RELEASE=master       # master, pre-release-17.0, pre-release-13.0, ...
 # ~~~
@@ -63,6 +63,8 @@ RUN git show --stat > /home/local/piglit-head.txt
 MOUNT {{ $ccachedir }}:/home/local/.ccache:Z
 
 ENV PATH=/usr/lib/ccache:$PATH
+
+ATTACH [ "/bin/bash" ]
 
 RUN cmake . && make
 

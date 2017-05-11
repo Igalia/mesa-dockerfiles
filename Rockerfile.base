@@ -2,7 +2,7 @@
 # Base image for building Mesa.
 #
 # ~~~
-#  rocker build -f Rockerfile.base      \
+#  rocker build -f Rockerfile.base [--attach]   \
 #    [--var USE_TXC_DXTN=yes]   # yes, no (default: no)
 # ~~~
 #
@@ -44,6 +44,8 @@ ENV MAKEFLAGS={{ .Env.MAKEFLAGS }}
 MOUNT {{ $ccachedir }}:/home/local/.ccache:Z
 
 ENV PATH=/usr/lib/ccache:$PATH
+
+ATTACH [ "/bin/bash" ]
 
 RUN wget http://xorg.freedesktop.org/releases/individual/proto/glproto-1.4.14.tar.bz2   \
   && tar -jxvf glproto-1.4.14.tar.bz2                                                   \
