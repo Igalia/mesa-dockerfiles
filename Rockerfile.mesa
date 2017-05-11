@@ -6,7 +6,7 @@
 #    --var BUILD=autotools      # scons, autotools, windows, distcheck                  \
 #    --var LLVM=3.3             # 3.3, 3.6, 3.8 or 3.9                                  \
 #    --var TAG=master           # master, pre-release-17.0, pre-release-13.0, ...       \
-#    [---var RELEASE=master]    # master, pre-release/17.0, pre-release/13.0, ...
+#    [--var RELEASE=master]    # master, pre-release/17.0, pre-release/13.0, ...
 # ~~~
 #
 # Environment variables that are used in the build:
