@@ -3,7 +3,7 @@
 #
 # ~~~
 #  rocker build -f Rockerfile.llvm      \
-#    --var LLVM=3.3             # 3.3, 3.6, 3.8 or 3.9
+#    --var LLVM=3.3             # 3.3, 3.6, 3.8, 3.9 or 4.0
 # ~~~
 #
 # Environment variables that are used in the build:
@@ -33,11 +33,11 @@ FROM {{ $image }}:base
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
-{{ if eq .LLVM "3.9" }}
+{{ if ge .LLVM "3.9" }}
 RUN apt-get update                                                            \
   && apt-get --no-install-recommends -y install gnupg                         \
   && wget -qO - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -     \
-  && echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-3.9 main" >> /etc/apt/sources.list \
+  && echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-{{ .LLVM }} main" >> /etc/apt/sources.list \
   && rm -fr /var/lib/apt/lists/*
 {{ end }}
 
