@@ -80,15 +80,23 @@ RUN ./autogen.sh                  \
   && make distcheck               \
   && sudo rm -fr /home/local/mesa
 {{ else }}
-RUN ./autogen.sh --with-egl-platforms=x11,drm,wayland                           \
-  --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                       \
-  --with-gallium-drivers=i915,nouveau,r300{{ if ge .LLVM "3.8" }},r600,radeonsi{{ end }},freedreno,svga,swrast{{ if ge .LLVM "3.9" }},swr{{ end }},vc4,virgl,etnaviv,imx    \
-  --with-vulkan-drivers=intel{{ if ge .LLVM "3.9" }},radeon{{ end }}            \
-  --enable-llvm --enable-llvm-shared-libs                                       \
-  --enable-glx-tls --enable-gbm --enable-egl                                    \
-  && make                                                                       \
-  && make check                                                                 \
-  && sudo make install                                                          \
+RUN export LLVM={{ .LLVM }}.0\
+  && eval `cat configure.ac | egrep ^LLVM_REQUIRED`                 \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_GALLIUM ; then GALLIUM_DRIVERS=i915,nouveau,r300,vc4,virgl,etnaviv,imx ; fi    \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_R600 ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,r600 ; fi                         \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADEONSI ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,radeonsi ; fi                 \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_SWR ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,swr ; fi                           \
+  && VULKAN_DRIVERS=intel                                           \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADV ; then VULKAN_DRIVERS=$VULKAN_DRIVERS,radeon ; fi                          \
+  && ./autogen.sh --with-egl-platforms=x11,drm,wayland              \
+    --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau         \
+    --with-gallium-drivers=$GALLIUM_DRIVERS                         \
+    --with-vulkan-drivers=$VULKAN_DRIVERS                           \
+    --enable-llvm --enable-llvm-shared-libs                         \
+    --enable-glx-tls --enable-gbm --enable-egl                      \
+  && make                                                           \
+  && make check                                                     \
+  && sudo make install                                              \
   && sudo rm -fr /home/local/mesa
 {{ end }}
 
