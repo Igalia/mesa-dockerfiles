@@ -23,6 +23,7 @@ script:
   - ./rocker build -f Rockerfile.llvm --var LLVM=3.6
   - ./rocker build -f Rockerfile.llvm --var LLVM=3.8
   - ./rocker build -f Rockerfile.llvm --var LLVM=3.9
+  - ./rocker build -f Rockerfile.llvm --var LLVM=4.0
 
 after_success:
   - if [[ -n "$DOCKER_USERNAME" && "$TRAVIS_BRANCH" == "master" ]]; then
@@ -31,4 +32,5 @@ after_success:
       docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-3.6;
       docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-3.8;
       docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-3.9;
+      docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-4.0;
     fi
