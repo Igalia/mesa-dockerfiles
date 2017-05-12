@@ -89,6 +89,6 @@ ENV CTS=vulkan
 
 VOLUME /results
 
-CMD "/bin/sh" "-c" "cp /home/local/*head.txt /results && if [ $CTS = opengl ]; then ./piglit-run.py tests/cts_gl /results; else ./piglit-run.py -c --deqp-mode=group tests/deqp_vk /results; fi"
+CMD "/bin/sh" "-c" "cp /home/local/*head.txt /results && if [ \$CTS = opengl ]; then ./piglit-run.py tests/cts_gl /results; else ./piglit-run.py -c --deqp-mode=group tests/deqp_vk /results; fi"
 
 TAG {{ $image }}:{{ .TAG }}
