@@ -58,6 +58,6 @@ RUN make
 
 VOLUME /results
 
-CMD [ "/bin/sh", "-c", "cp /home/local/*head.txt /results && ./run shaders > /results/results.txt" ]
+CMD "/bin/sh" "-c" "cp /home/local/*head.txt /results && ./run shaders > /results/results.txt"
 
 TAG {{ $image }}:{{ .TAG }}
