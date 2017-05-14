@@ -2,10 +2,10 @@
 # This builds and installs Mesa.
 #
 # ~~~
-#  rocker build -f Rockerfile.mesa [--attach]                                           \
-#    --var BUILD=autotools      # scons, autotools, windows, distcheck, gallium         \
-#    [--var LLVM=3.3]           # 3.3, 3.6, 3.8, 3.9 or 4.0                             \
-#    --var TAG=master           # master, pre-release-17.0, pre-release-13.0, ...       \
+#  rocker build -f Rockerfile.mesa [--attach]                                            \
+#    --var BUILD=autotools      # scons, autotools, windows, distcheck, gallium, android \
+#    [--var LLVM=3.3]           # 3.3, 3.6, 3.8, 3.9 or 4.0                              \
+#    --var TAG=master           # master, pre-release-17.0, pre-release-13.0, ...        \
 #    [--var RELEASE=master]     # master, pre-release/17.0, pre-release/13.0, ...
 # ~~~
 #
@@ -21,6 +21,8 @@
 
 {{ if eq .BUILD "windows" }}
 FROM {{ $image }}:base
+{{ else if eq .BUILD "android"}}
+FROM {{ $image }}:base
 {{ else if eq $llvm_version "0.0" }}
 FROM {{ $image }}:base
 {{ else }}
@@ -29,17 +31,52 @@ FROM {{ $image }}:llvm-{{ .LLVM }}
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
-RUN apt-get update                                   \
-  && apt-get -y --no-install-recommends install git  \
-     {{ if eq .BUILD "windows" }}mingw-w64{{ end }}  \
+RUN apt-get update                                      \
+  && apt-get -y --no-install-recommends install git     \
+     {{ if eq .BUILD "windows" }}mingw-w64{{ end }}     \
+     {{ if eq .BUILD "android" }}openjdk-8-jdk{{ end }} \
   && rm -fr /var/lib/apt/lists/*
 
 USER local
+
+WORKDIR /home/local
 
 {{ if .Env.MAKEFLAGS }}
 ENV MAKEFLAGS={{ .Env.MAKEFLAGS }}
 ENV SCONSFLAGS={{ .Env.MAKEFLAGS }}
 {{ end }}
+
+MOUNT {{ $ccachedir }}:/home/local/.ccache:Z
+
+{{ if eq .BUILD "android" }}
+RUN wget https://storage.googleapis.com/git-repo-downloads/repo \
+  && chmod u+x repo                                             \
+  && mkdir -p /home/local/.bin                                  \
+  && mv repo /home/local/.bin
+
+ENV PATH=/usr/lib/ccache:/home/local/.bin/:$PATH
+ENV USE_CCACHE=1
+
+RUN mkdir -p /home/local/aosp
+
+WORKDIR /home/local/aosp
+
+RUN repo init --depth=1 -u https://android.googlesource.com/platform/manifest  \
+  && git clone --depth=1 https://github.com/Igalia/mesa-android-manifest -b no-mesa-minimum-reqs .repo/local_manifests  \
+  && repo sync --force-sync --no-tags -c
+
+{{ if .RELEASE }}
+RUN git clone https://github.com/Igalia/release-mesa --depth 1 -b {{ .RELEASE }} external/mesa3d
+{{ else }}
+ADD . external/mesa3d
+RUN sudo chown -R local:local external/mesa3d
+{{ end }}
+
+RUN git -C external/mesa3d show --stat > /home/local/mesa-head.txt
+
+{{ else }}
+
+ENV PATH=/usr/lib/ccache:/usr/lib/llvm-{{ $llvm_version }}/bin:$PATH
 
 {{ if .RELEASE }}
 RUN git clone https://github.com/Igalia/release-mesa --depth 1 -b {{ .RELEASE }} /home/local/mesa
@@ -48,12 +85,13 @@ ADD . /home/local/mesa
 RUN sudo chown -R local:local /home/local/mesa
 {{ end }}
 
-WORKDIR /home/local
+WORKDIR /home/local/mesa
 
-MOUNT {{ $ccachedir }}:/home/local/.ccache:Z
+RUN git show --stat > /home/local/mesa-head.txt
 
-ENV PATH=/usr/lib/ccache:/usr/lib/llvm-{{ $llvm_version }}/bin:$PATH
+{{ end }}
 
+{{ if ne .BUILD "android" }}
 RUN export DRM_VERSION=`cat /home/local/mesa/configure.ac | egrep ^LIBDRM.*REQUIRED| cut -f2 -d= | sort -nr | head -n 1` \
   && wget http://dri.freedesktop.org/libdrm/libdrm-$DRM_VERSION.tar.bz2                                                  \
   && tar -jxvf libdrm-$DRM_VERSION.tar.bz2                                                                               \
@@ -66,13 +104,16 @@ RUN export DRM_VERSION=`cat /home/local/mesa/configure.ac | egrep ^LIBDRM.*REQUI
   && sudo rm -fr ../libdrm-$DRM_VERSION                                                                                  \
   && unset DRM_VERSION
 
-WORKDIR /home/local/mesa
-
-RUN git show --stat > /home/local/mesa-head.txt
+{{ end }}
 
 ATTACH [ "/bin/bash" ]
 
-{{ if eq .BUILD "scons" }}
+{{ if eq .BUILD "android" }}
+RUN sed -i '1s/^/BOARD_GPU_DRIVERS := i915 i965 i915g r300g r600g nouveau swrast vc4 virgl\n/' external/mesa3d/Android.mk
+RUN ln -sf /usr/bin/bison prebuilts/misc/linux-x86/bison/bison
+RUN [ "/bin/bash", "-c", "source build/envsetup.sh && lunch linaro_arm64-userdebug && make i965_dri i915_dri gallium_dri && lunch linaro_x86_64-userdebug && make i965_dri i915_dri gallium_dri && sudo rm -fr /home/local/aosp" ]
+
+{{ else if eq .BUILD "scons" }}
 {{ if eq $llvm_version "0.0" }}
 RUN scons llvm=0               \
   && scons llvm=0 check        \
@@ -82,9 +123,11 @@ RUN scons llvm=1               \
   && scons llvm=1 check        \
   && sudo rm -fr /home/local/mesa
 {{ end }}
+
 {{ else if eq .BUILD "windows" }}
 RUN scons platform=windows toolchain=crossmingw \
   && sudo rm -fr /home/local/mesa
+
 {{ else if eq .BUILD "distcheck" }}
 RUN ./autogen.sh                  \
   && make distcheck               \
