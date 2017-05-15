@@ -67,7 +67,7 @@ RUN chmod +x full-piglit-run.sh
 
 RUN wget -c https://raw.githubusercontent.com/tanty/mesa-resources/master/testing/f-p-r-patterns.txt
 
-RUN git clone --depth 1 http://github.com/dcbaker/piglit.git -b wip/deqp-group-at-a-time /home/local/dcbaker-piglit
+RUN git clone --depth 1 http://github.com/Igalia/piglit.git -b wip/agomez/dcbaker-deqp-group-at-a-time-_-khr-gl45 /home/local/igalia-piglit
 
 ADD vk-gl-cts /home/local/vk-gl-cts
 
@@ -96,6 +96,6 @@ RUN git show --stat > /home/local/vk-gl-cts-head.txt
 
 VOLUME /results
 
-CMD "/bin/sh" "-c" "cp /home/local/*head.txt /results && CTS_SUITE=\"--run-gl-cts\" && if test \"x\$CTS\" = \"xvulkan\"; then CTS_SUITE=\"--run-vk-cts\"; fi && export MESA_COMMIT=\$(grep commit /home/local/mesa-head.txt | cut -d \" \" -f 2) && /home/local/full-piglit-run.sh \$FPR_EXTRA_ARGS \$CTS_SUITE --create-piglit-report --base-path /home/local --piglit-path /home/local/dcbaker-piglit --vk-gl-cts-path /home/local/vk-gl-cts/build --piglit-results-path /results --driver \$GL_DRIVER --commit \$MESA_COMMIT"
+CMD "/bin/sh" "-c" "cp /home/local/*head.txt /results && CTS_SUITE=\"--run-gl-cts\" && if test \"x\$CTS\" = \"xvulkan\"; then CTS_SUITE=\"--run-vk-cts\"; fi && export MESA_COMMIT=\$(grep commit /home/local/mesa-head.txt | cut -d \" \" -f 2) && /home/local/full-piglit-run.sh \$FPR_EXTRA_ARGS \$CTS_SUITE --create-piglit-report --base-path /home/local --piglit-path /home/local/igalia-piglit --vk-gl-cts-path /home/local/vk-gl-cts/build --piglit-results-path /results --driver \$GL_DRIVER --commit \$MESA_COMMIT"
 
 TAG {{ $image }}:{{ .TAG }}
