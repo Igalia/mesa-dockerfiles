@@ -29,6 +29,7 @@ after_success:
   - if [[ -n "$DOCKER_USERNAME" && "$TRAVIS_BRANCH" == "master" ]]; then
       docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
       docker push ${DOCKER_IMAGE:-igalia/mesa}:base;
+      docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-3.3;
       docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-3.6;
       docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-3.8;
       docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-3.9;
