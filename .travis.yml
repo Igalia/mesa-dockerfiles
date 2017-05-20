@@ -4,6 +4,7 @@ language: c
 
 cache:
   ccache: true
+
 services:
   - docker
 
@@ -17,21 +18,65 @@ before_script:
   - rm rocker_linux_amd64.tar.gz
   - mkdir -p -m777 ~/.ccache
 
+stage: Build Base
+
 script:
   - ./rocker build -f Rockerfile.base --var USE_TXC_DXTN=${USE_TXC_DXTN:-no}
-  - ./rocker build -f Rockerfile.llvm --var LLVM=3.3
-  - ./rocker build -f Rockerfile.llvm --var LLVM=3.6
-  - ./rocker build -f Rockerfile.llvm --var LLVM=3.8
-  - ./rocker build -f Rockerfile.llvm --var LLVM=3.9
-  - ./rocker build -f Rockerfile.llvm --var LLVM=4.0
 
 after_success:
   - if [[ -n "$DOCKER_USERNAME" && "$TRAVIS_BRANCH" == "master" ]]; then
       docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
       docker push ${DOCKER_IMAGE:-igalia/mesa}:base;
-      docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-3.3;
-      docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-3.6;
-      docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-3.8;
-      docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-3.9;
-      docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-4.0;
     fi
+
+jobs:
+  include:
+    - stage: Build LLVM
+      env: LLVM=3.3
+      script:
+        - ./rocker build -f Rockerfile.llvm --var LLVM=$LLVM
+      after_success:
+        - if [[ -n "$DOCKER_USERNAME" && "$TRAVIS_BRANCH" == "master" ]]; then
+            docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+            docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-$LLVM;
+          fi
+
+    - stage: Build LLVM
+      env: LLVM=3.6
+      script:
+        - ./rocker build -f Rockerfile.llvm --var LLVM=$LLVM
+      after_success:
+        - if [[ -n "$DOCKER_USERNAME" && "$TRAVIS_BRANCH" == "master" ]]; then
+            docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+            docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-$LLVM;
+          fi
+
+    - stage: Build LLVM
+      env: LLVM=3.8
+      script:
+        - ./rocker build -f Rockerfile.llvm --var LLVM=$LLVM
+      after_success:
+        - if [[ -n "$DOCKER_USERNAME" && "$TRAVIS_BRANCH" == "master" ]]; then
+            docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+            docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-$LLVM;
+          fi
+
+    - stage: Build LLVM
+      env: LLVM=3.9
+      script:
+        - ./rocker build -f Rockerfile.llvm --var LLVM=$LLVM
+      after_success:
+        - if [[ -n "$DOCKER_USERNAME" && "$TRAVIS_BRANCH" == "master" ]]; then
+            docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+            docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-$LLVM;
+          fi
+
+    - stage: Build LLVM
+      env: LLVM=4.0
+      script:
+        - ./rocker build -f Rockerfile.llvm --var LLVM=$LLVM
+      after_success:
+        - if [[ -n "$DOCKER_USERNAME" && "$TRAVIS_BRANCH" == "master" ]]; then
+            docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+            docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-$LLVM;
+          fi
