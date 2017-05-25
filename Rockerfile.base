@@ -54,6 +54,7 @@ RUN wget http://xorg.freedesktop.org/releases/individual/proto/glproto-1.4.14.ta
   && ./configure                                                                        \
   && make                                                                               \
   && sudo make install                                                                  \
+  && sudo ldconfig                                                                      \
   && sudo rm -fr ../glproto-1.4.14
 
 RUN wget http://xorg.freedesktop.org/releases/individual/proto/dri2proto-2.8.tar.bz2    \
@@ -63,6 +64,7 @@ RUN wget http://xorg.freedesktop.org/releases/individual/proto/dri2proto-2.8.tar
   && ./configure                                                                        \
   && make                                                                               \
   && sudo make install                                                                  \
+  && sudo ldconfig                                                                      \
   && sudo rm -fr ../dri2proto-2.8
 
 RUN wget http://xorg.freedesktop.org/releases/individual/proto/dri3proto-1.0.tar.bz2    \
@@ -72,6 +74,7 @@ RUN wget http://xorg.freedesktop.org/releases/individual/proto/dri3proto-1.0.tar
   && ./configure                                                                        \
   && make                                                                               \
   && sudo make install                                                                  \
+  && sudo ldconfig                                                                      \
   && sudo rm -fr ../dri3proto-1.0
 
 RUN wget http://xorg.freedesktop.org/releases/individual/proto/presentproto-1.0.tar.bz2 \
@@ -81,6 +84,7 @@ RUN wget http://xorg.freedesktop.org/releases/individual/proto/presentproto-1.0.
   && ./configure                                                                        \
   && make                                                                               \
   && sudo make install                                                                  \
+  && sudo ldconfig                                                                      \
   && sudo rm -fr ../presentproto-1.0
 
 # RUN wget http://xcb.freedesktop.org/dist/xcb-proto-1.11.tar.bz2 \
@@ -90,6 +94,7 @@ RUN wget http://xorg.freedesktop.org/releases/individual/proto/presentproto-1.0.
 #   && ./configure                                                \
 #   && make                                                       \
 #   && sudo make install                                          \
+#   && sudo ldconfig                                              \
 #   && sudo rm -fr ../xcb-proto-1.11
 
 # RUN wget http://xcb.freedesktop.org/dist/libxcb-1.11.tar.bz2    \
@@ -99,6 +104,7 @@ RUN wget http://xorg.freedesktop.org/releases/individual/proto/presentproto-1.0.
 #   && ./configure                                                \
 #   && make                                                       \
 #   && sudo make install                                          \
+#   && sudo ldconfig                                              \
 #   && sudo rm -fr ../libxcb-1.11
 
 RUN wget http://xorg.freedesktop.org/releases/individual/lib/libxshmfence-1.1.tar.bz2   \
@@ -108,6 +114,7 @@ RUN wget http://xorg.freedesktop.org/releases/individual/lib/libxshmfence-1.1.ta
   && ./configure                                                                        \
   && make                                                                               \
   && sudo make install                                                                  \
+  && sudo ldconfig                                                                      \
   && sudo rm -fr ../libxshmfence-1.1
 
 {{ if .USE_TXC_DXTN }}
@@ -119,6 +126,7 @@ RUN wget https://people.freedesktop.org/~cbrill/libtxc_dxtn/libtxc_dxtn-1.0.1.ta
   && ./configure                                                                        \
   && make                                                                               \
   && sudo make install                                                                  \
+  && sudo ldconfig                                                                      \
   && sudo rm -fr ../libtxc_dxtn-1.0.1
 {{ end }}
 {{ end }}
@@ -130,6 +138,7 @@ RUN wget https://wayland.freedesktop.org/releases/wayland-1.13.0.tar.xz         
   && ./configure --disable-documentation                                                \
   && make                                                                               \
   && sudo make install                                                                  \
+  && sudo ldconfig                                                                      \
   && sudo rm -fr ../wayland-1.13.0
 
 USER root

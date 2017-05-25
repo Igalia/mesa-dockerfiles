@@ -62,6 +62,7 @@ RUN export DRM_VERSION=`cat /home/local/mesa/configure.ac | egrep ^LIBDRM.*REQUI
   && ./configure --enable-freedreno --enable-vc4 --enable-etnaviv-experimental-api                                       \
   && make                                                                                                                \
   && sudo make install                                                                                                   \
+  && sudo ldconfig                                                                                                       \
   && sudo rm -fr ../libdrm-$DRM_VERSION                                                                                  \
   && unset DRM_VERSION
 
@@ -106,6 +107,7 @@ RUN export LLVM={{ $llvm_version }}.0\
   && make                                                           \
   && make check                                                     \
   && sudo make install                                              \
+  && sudo ldconfig                                                  \
   && sudo rm -fr /home/local/mesa
 {{ end }}
 
