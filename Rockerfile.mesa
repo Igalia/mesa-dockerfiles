@@ -3,7 +3,7 @@
 #
 # ~~~
 #  rocker build -f Rockerfile.mesa [--attach]                                           \
-#    --var BUILD=autotools      # scons, autotools, windows, distcheck                  \
+#    --var BUILD=autotools      # scons, autotools, windows, distcheck, gallium         \
 #    [--var LLVM=3.3]           # 3.3, 3.6, 3.8, 3.9 or 4.0                             \
 #    --var TAG=master           # master, pre-release-17.0, pre-release-13.0, ...       \
 #    [--var RELEASE=master]     # master, pre-release/17.0, pre-release/13.0, ...
@@ -88,6 +88,20 @@ RUN scons platform=windows toolchain=crossmingw \
 {{ else if eq .BUILD "distcheck" }}
 RUN ./autogen.sh                  \
   && make distcheck               \
+  && sudo rm -fr /home/local/mesa
+{{ else if eq .BUILD "gallium" }}
+RUN export LLVM={{ $llvm_version }}.0\
+  && eval `cat configure.ac | egrep ^LLVM_REQUIRED`                 \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_GALLIUM ; then GALLIUM_DRIVERS=i915,svga,swrast,nouveau,r300,vc4,virgl,etnaviv,imx ; fi \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_R600 ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,r600 ; fi                         \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADEONSI ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,radeonsi ; fi                 \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_SWR ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,swr ; fi                           \
+  && ./autogen.sh --with-dri-drivers=""                             \
+    --with-gallium-drivers=$GALLIUM_DRIVERS                         \
+    {{ if ne $llvm_version "0.0" }} --enable-llvm --enable-llvm-shared-libs {{ end }}   \
+    --disable-glx --disable-gbm --disable-egl                       \
+  && make                                                           \
+  && make check                                                     \
   && sudo rm -fr /home/local/mesa
 {{ else }}
 RUN export LLVM={{ $llvm_version }}.0\
