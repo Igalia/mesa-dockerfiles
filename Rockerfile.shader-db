@@ -4,7 +4,7 @@
 # ~~~
 #  rocker build -f Rockerfile.shader-db                                 \
 #   --var VIDEO_GID=`getent group video | cut -f3 -d:`                  \
-#   --var TAG=shader-db     # shader-db-17.0, shader-db-13.0, ...       \
+#   [--var TAG=shader-db]   # shader-db-17.0, shader-db-13.0, ...       \
 #   --var RELEASE=master    # master, pre-release-17.0, pre-ŕelase-13.0, ...
 #
 # ~~~
@@ -60,4 +60,6 @@ VOLUME /results
 
 CMD "/bin/sh" "-c" "cp /home/local/*head.txt /results && ./run shaders > /results/results.txt"
 
+{{ if .TAG }}
 TAG {{ $image }}:{{ .TAG }}
+{{ end }}
