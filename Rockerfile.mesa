@@ -22,7 +22,7 @@
 {{ if eq .BUILD "windows" }}
 FROM {{ $image }}:base
 {{ else if eq .BUILD "android"}}
-FROM {{ $image }}:base
+FROM ubuntu:xenial
 {{ else if eq $llvm_version "0.0" }}
 FROM {{ $image }}:base
 {{ else }}
@@ -34,9 +34,15 @@ LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 RUN apt-get update                                      \
   && apt-get -y --no-install-recommends install git     \
      {{ if eq .BUILD "windows" }}mingw-w64{{ end }}     \
-     {{ if eq .BUILD "android" }}openjdk-8-jdk{{ end }} \
+     {{ if eq .BUILD "android" }}                       \
+       wget openjdk-8-jdk python sudo make gcc gettext  \
+       python-mako bison libc6-dev xz-utils             \
+     {{ end }}                                          \
   && rm -fr /var/lib/apt/lists/*
 
+{{ if eq .BUILD "android" }}
+RUN adduser --gecos "" local && passwd -d local && adduser local sudo
+{{ end }}
 USER local
 
 WORKDIR /home/local
@@ -60,6 +66,8 @@ ENV USE_CCACHE=1
 RUN mkdir -p /home/local/aosp
 
 WORKDIR /home/local/aosp
+
+ATTACH [ "/bin/bash" ]
 
 RUN repo init --depth=1 -u https://android.googlesource.com/platform/manifest  \
   && git clone --depth=1 https://github.com/Igalia/mesa-android-manifest -b no-mesa-minimum-reqs .repo/local_manifests  \
