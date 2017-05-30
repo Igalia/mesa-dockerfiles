@@ -45,6 +45,7 @@ RUN apt-get update                                                            \
 RUN wget https://people.igalia.com/jasuarez/packages/llvm-3.3_3.3-+checkinstall1_amd64.deb      \
   && dpkg -i llvm-3.3_3.3-+checkinstall1_amd64.deb                                              \
   && rm llvm-3.3_3.3-+checkinstall1_amd64.deb
+ENV LD_LIBRARY_PATH=/usr/lib/llvm-{{ .LLVM }}/lib:$LD_LIBRARY_PATH
 {{ else }}
 RUN apt-get update                                                            \
   && apt-get --no-install-recommends -y install libclang-{{ .LLVM }}-dev      \
