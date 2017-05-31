@@ -37,6 +37,8 @@ USER local
 
 WORKDIR /home/local
 
+ENV LDFLAGS="-L/usr/local/lib $LDFLAGS"
+
 {{ if .Env.MAKEFLAGS }}
 ENV MAKEFLAGS={{ .Env.MAKEFLAGS }}
 {{ end }}
