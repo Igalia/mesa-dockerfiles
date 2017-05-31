@@ -18,11 +18,6 @@ before_script:
   - rm rocker_linux_amd64.tar.gz
   - mkdir -p -m777 ~/.ccache
 
-stage: Build Base
-
-script:
-  - ./rocker build -f Rockerfile.base --var USE_TXC_DXTN=${USE_TXC_DXTN:-no}
-
 after_success:
   - if [[ -n "$DOCKER_USERNAME" && "$TRAVIS_BRANCH" == "master" ]]; then
       docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
@@ -31,6 +26,10 @@ after_success:
 
 jobs:
   include:
+    - stage: Build Base
+      script:
+        - ./rocker build -f Rockerfile.base --var USE_TXC_DXTN=${USE_TXC_DXTN:-no}
+
     - stage: Build LLVM
       env: LLVM=3.3
       script:
