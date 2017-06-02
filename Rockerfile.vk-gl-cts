@@ -88,8 +88,8 @@ RUN ../update_external_sources.sh                      \
 
 WORKDIR /home/local/vk-gl-cts/build
 
-RUN python3 ../external/fetch_sources.py               \
-  && cmake .. -DGLCTS_GTF_TARGET=gl                    \
+RUN python3 ../external/fetch_sources.py                  \
+  && cmake .. -DDEQP_TARGET=x11_egl -DGLCTS_GTF_TARGET=gl \
   && cmake --build .
 
 RUN git show --stat > /home/local/vk-gl-cts-head.txt
