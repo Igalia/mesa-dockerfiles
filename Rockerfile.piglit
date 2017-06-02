@@ -54,7 +54,14 @@ RUN chmod +x full-piglit-run.sh
 
 RUN wget -c https://raw.githubusercontent.com/tanty/mesa-resources/master/testing/f-p-r-patterns.txt
 
-RUN git clone --depth 1 git://anongit.freedesktop.org/piglit /home/local/piglit
+RUN (PIGLIT_RELEASE={{ .RELEASE }} && FULL_PIGLIT_RELEASE="${PIGLIT_RELEASE##*-}"   \
+      && MAJOR_PIGLIT_RELEASE=`echo "$FULL_PIGLIT_RELEASE" | cut -d . -f 1`         \
+      && MINOR_PIGLIT_RELEASE=`echo "$FULL_PIGLIT_RELEASE" | cut -d . -f 2`         \
+      && git clone --depth 1                                                        \
+               -b test/mesa-"$MAJOR_PIGLIT_RELEASE"."$MINOR_PIGLIT_RELEASE"         \
+               https://github.com/Igalia/piglit.git /home/local/piglit)             \
+    || git clone --depth 1                                                          \
+          git://anongit.freedesktop.org/piglit /home/local/piglit
 
 WORKDIR /home/local/piglit
 
