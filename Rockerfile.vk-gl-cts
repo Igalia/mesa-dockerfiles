@@ -90,6 +90,7 @@ WORKDIR /home/local/vk-gl-cts/build
 
 RUN python3 ../external/fetch_sources.py                  \
   && cmake .. -DDEQP_TARGET=x11_egl -DGLCTS_GTF_TARGET=gl \
+  && find . -name link.txt -exec sed -i "s/;-/ -/g" {} \; \
   && cmake --build .
 
 RUN git show --stat > /home/local/vk-gl-cts-head.txt
