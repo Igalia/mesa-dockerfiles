@@ -1,0 +1,43 @@
+#
+# This installs Megaglest, a 3D strategy game. For testing purposes.
+#
+#
+# ~~~
+#  rocker build -f Rockerfile.megaglest                                 \
+#    [--var TAG=megaglest]   # megaglest-17.0, megaglest-cts-13.0, ...  \
+#    --var RELEASE=master    # master, pre-release-17.0, pre-release-13.0, ...
+# ~~~
+#
+# Environment variables that are used in the build:
+#  - DOCKER_IMAGE: name of the final image to be tagged (default: igalia/mesa)
+#
+# To run
+#
+# ~~~
+#   docker run --privileged --rm -v /tmp/.X11-unix:/tmp/.X11-unix \
+#              -e DISPLAY=unix$DISPLAY                            \
+#              [-e LIBGL_ALWAYS_SOFTWARE=1]                       \
+#              [-e GALLIUM_DRIVER=$GALLIUM_DRIVER]                \
+#              igalia/mesa:vk-gl-cts
+# ~~~
+#
+# GALLIUM_DRIVER = [ llvmpipe, swr, softpipe ]
+#
+
+{{ $image := (or .Env.DOCKER_IMAGE "igalia/mesa") }}
+
+FROM {{ $image }}:{{ .RELEASE }}
+
+LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
+
+RUN apt-get update                                                  \
+  && apt-get -y --no-install-recommends install megaglest           \
+  && rm -fr /var/lib/apt/lists/*
+
+USER local
+
+CMD "/bin/sh" "-c" "/usr/games/megaglest && /usr/games/megaglest --opengl-info"
+
+{{ if .TAG }}
+TAG {{ $image }}:{{ .TAG }}
+{{ end }}
