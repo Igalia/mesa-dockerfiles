@@ -234,7 +234,9 @@ function run_piglit_tests {
     fi
 
     if $CDP_VERBOSE; then
-	CDP_EXTRA_ARGS="--verbose $CDP_EXTRA_ARGS"
+	CDP_EXTRA_ARGS="--verbosity full $CDP_EXTRA_ARGS"
+    elif $CDP_QUIET; then
+	CDP_EXTRA_ARGS="--verbosity quiet $CDP_EXTRA_ARGS"
     fi
 
     for suite in $(test_suites); do

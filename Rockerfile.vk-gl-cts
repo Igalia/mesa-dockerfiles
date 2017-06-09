@@ -22,7 +22,7 @@
 #   docker run --privileged --rm -t -v ~/my_results_dir:/results:Z  \
 #              -v /tmp/.X11-unix:/tmp/.X11-unix \
 #              -e DISPLAY=unix$DISPLAY \
-#              -e FPR_EXTRA_ARGS="--verbose" \
+#              -e FPR_EXTRA_ARGS="--verbosity full" \
 #              -e CTS=vulkan \
 #              -e GL_DRIVER=i965 igalia/mesa:vk-gl-cts
 # ~~~
