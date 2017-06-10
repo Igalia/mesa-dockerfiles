@@ -21,6 +21,31 @@ export -p DISPLAY
 MAKEFLAGS=-j$(getconf _NPROCESSORS_ONLN)
 export MAKEFLAGS
 
+
+#------------------------------------------------------------------------------
+#			Function: backup_redirection
+#------------------------------------------------------------------------------
+#
+# backups current stout and sterr file handlers
+function backup_redirection() {
+        exec 7>&1            # Backup stout.
+        exec 8>&2            # Backup sterr.
+        exec 9>&1            # New handler for stout when we actually want it.
+}
+
+
+#------------------------------------------------------------------------------
+#			Function: restore_redirection
+#------------------------------------------------------------------------------
+#
+# restores previously backed up stout and sterr file handlers
+function restore_redirection() {
+        exec 1>&7 7>&-       # Restore stout.
+        exec 2>&8 8>&-       # Restore sterr.
+        exec 9>&-            # Closing open handler.
+}
+
+
 #------------------------------------------------------------------------------
 #			Function: check_verbosity
 #------------------------------------------------------------------------------
@@ -42,6 +67,28 @@ function check_verbosity() {
 
     return 0
 }
+
+
+#------------------------------------------------------------------------------
+#			Function: apply_verbosity
+#------------------------------------------------------------------------------
+#
+# applies the passed verbosity level to the output:
+#   $1 - the verbosity to use
+function apply_verbosity() {
+
+    backup_redirection
+
+    if [ "x$1" != "xfull" ]; then
+	exec 1>/dev/null
+    fi
+
+    if [ "x$1" == "xquiet" ]; then
+	exec 2>/dev/null
+	exec 9>/dev/null
+    fi
+}
+
 
 #------------------------------------------------------------------------------
 #			Function: check_local_changes
@@ -98,7 +145,7 @@ check_option_args() {
 #			Function: cleanup
 #------------------------------------------------------------------------------
 #
-# cleans up the environment and exits with a give error code
+# cleans up the environment and exits with a given error code
 #   $1 - the error code to exit with
 # returns:
 #   it exits
@@ -113,6 +160,7 @@ function cleanup {
 	    fi
 	fi
     fi
+    restore_redirection
 
     exit $1
 }
@@ -128,7 +176,7 @@ function cleanup {
 function header {
     CDP_TIMESTAMP=`date +%Y%m%d%H%M%S`
     CDP_SPACE=$(df -h)
-    printf "%s\n" "Running $1 at $CDP_TIMESTAMP" "" "$CDP_SPACE" "" >&2
+    printf "%s\n" "Running $1 at $CDP_TIMESTAMP" "" "$CDP_SPACE" "" >&9
 
     return 0
 }
@@ -234,15 +282,18 @@ function run_piglit_tests {
     for suite in $(test_suites); do
 	for driver in $CDP_MESA_DRIVERS; do
 	    corrected_driver=`proper_driver "$suite" "$driver"`
-	    printf "%s\n" "" "Processing $suite test suite with driver $corrected_driver ..." "" >&2
+	    printf "%s\n" "" "Processing $suite test suite with driver $corrected_driver ..." "" >&9
 	    if ! $CDP_DRY_RUN; then
+
+		# We restore the redirection so the output is managed
+		# by the commands inside "docker run"
+		restore_redirection
 		if [ "x$suite" = "xpiglit" ]; then
 		    docker run --privileged --rm -t -v "${CDP_PIGLIT_RESULTS_DIR}":/results:Z \
 			   -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
 			   -e FPR_EXTRA_ARGS="$CDP_EXTRA_ARGS" \
 			   -e GL_DRIVER="$corrected_driver" igalia/mesa:piglit
-		fi
-		if [ "x$suite" = "xopengl" ] || [ "x$suite" = "xvulkan" ]; then
+		elif [ "x$suite" = "xopengl" ] || [ "x$suite" = "xvulkan" ]; then
 		    if [ "x$suite" = "xopengl" ]; then
 			CDP_CTS_EXTRA_ARGS="$CDP_EXTRA_ARGS"
 		    else
@@ -254,6 +305,7 @@ function run_piglit_tests {
 			   -e CTS="$suite" \
 			   -e GL_DRIVER="$corrected_driver" igalia/mesa:vk-gl-cts
 		fi
+		apply_verbosity "$CDP_VERBOSITY"
 	    fi
 	done
     done
@@ -402,18 +454,12 @@ CDP_RUN_PIGLIT="${CDP_RUN_PIGLIT:-false}"
 
 CDP_VERBOSITY="${CDP_VERBOSITY:-normal}"
 
-check_verbosity $CDP_VERBOSITY
+check_verbosity "$CDP_VERBOSITY"
 if [ $? -ne 0 ]; then
     exit 13
 fi
 
-if [ "x$CDP_VERBOSITY" != "xfull" ]; then
-    exec > /dev/null
-fi
-
-if [ "x$CDP_VERBOSITY" == "xquiet" ]; then
-    exec 2>&1
-fi
+apply_verbosity "$CDP_VERBOSITY"
 
 # dry run?
 # --------
