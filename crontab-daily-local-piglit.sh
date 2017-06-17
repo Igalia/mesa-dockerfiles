@@ -317,20 +317,6 @@ function build_piglit() {
 
 
 #------------------------------------------------------------------------------
-#			Function: create_piglit_reference
-#------------------------------------------------------------------------------
-#
-# creates the soft link to the piglit reference run
-# returns:
-#   0 is success, an error code otherwise
-function create_piglit_reference() {
-    ln -sfr $(ls -d $CFPR_BASE_PATH/piglit-results/results/all-i965*| tail -1) -T $CFPR_BASE_PATH/piglit-results/reference/all-i965
-
-    return 0
-}
-
-
-#------------------------------------------------------------------------------
 #			Function: clean_piglit
 #------------------------------------------------------------------------------
 #
@@ -342,6 +328,63 @@ function clean_piglit() {
     if $CFPR_CLEAN; then
 	docker rmi igalia/mesa:piglit
     fi
+
+    return 0
+}
+
+
+#------------------------------------------------------------------------------
+#			Function: create_piglit_reference
+#------------------------------------------------------------------------------
+#
+# creates the soft link to the piglit reference run
+#   $1 - the driver for which to create the reference
+# returns:
+#   0 is success, an error code otherwise
+function create_piglit_reference() {
+    if [ "x$1" == "x" ]; then
+	return -1
+    fi
+
+    ln -sfr $(ls -d $CFPR_PIGLIT_RESULTS_DIR/results/all-"$1"* | tail -1) -T $CFPR_PIGLIT_RESULTS_DIR/reference/all-"$1"
+
+    return 0
+}
+
+
+#------------------------------------------------------------------------------
+#			Function: create_gl_cts_reference
+#------------------------------------------------------------------------------
+#
+# creates the soft link to the GL-CTS reference run
+#   $1 - the driver for which to create the reference
+# returns:
+#   0 is success, an error code otherwise
+function create_gl_cts_reference() {
+    if [ "x$1" == "x" ]; then
+	return -1
+    fi
+
+    ln -sfr $(ls -d $CFPR_PIGLIT_RESULTS_DIR/results/GL-CTS-"$1"* | tail -1) -T $CFPR_PIGLIT_RESULTS_DIR/reference/GL-CTS-"$1"
+
+    return 0
+}
+
+
+#------------------------------------------------------------------------------
+#			Function: create_vk_cts_reference
+#------------------------------------------------------------------------------
+#
+# creates the soft link to the VK-CTS reference run
+#   $1 - the driver for which to create the reference
+# returns:
+#   0 is success, an error code otherwise
+function create_vk_cts_reference() {
+    if [ "x$1" == "x" ]; then
+	return -1
+    fi
+
+    ln -sfr $(ls -d $CFPR_PIGLIT_RESULTS_DIR/results/VK-CTS-"$1"* | tail -1) -T $CFPR_PIGLIT_RESULTS_DIR/reference/VK-CTS-"$1"
 
     return 0
 }
@@ -385,6 +428,8 @@ function run_tests {
 
 	apply_verbosity "$CFPR_VERBOSITY"
 
+	$CFPR_MERGE_BASE_RUN && create_piglit_reference "i965"
+
     	clean_piglit
     fi
 
@@ -405,6 +450,8 @@ function run_tests {
 		   -e GL_DRIVER="i965" igalia/mesa:vk-gl-cts
 
 	    apply_verbosity "$CFPR_VERBOSITY"
+
+	    $CFPR_MERGE_BASE_RUN && create_gl_cts_reference "i965"
 	fi
 
 	if $CFPR_RUN_VK_CTS; then
@@ -421,6 +468,8 @@ function run_tests {
 		   -e GL_DRIVER="anv" igalia/mesa:vk-gl-cts
 
 	    apply_verbosity "$CFPR_VERBOSITY"
+
+	    $CFPR_MERGE_BASE_RUN && create_vk_cts_reference "anv"
 	fi
 
     	clean_vk_gl_cts
