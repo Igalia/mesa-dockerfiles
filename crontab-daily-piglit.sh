@@ -259,7 +259,7 @@ function run_piglit_tests {
 
 
     if $CDP_RUN_PIGLIT; then
-	rocker build --pull -f Rockerfile.piglit --var TAG=piglit --var RELEASE="${CDP_RELEASE}"
+	rocker build --pull -f Rockerfile.piglit --var DEBUG=true --var TAG=piglit --var RELEASE="${CDP_RELEASE}"
 	CDP_TEST_SUITES="piglit $CDP_TEST_SUITES"
     fi
 
@@ -272,7 +272,7 @@ function run_piglit_tests {
 	git pull
 	cd -
 	cd $HOME
-	rocker build --pull -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var TAG=vk-gl-cts --var RELEASE="${CDP_RELEASE}"
+	rocker build --pull -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var DEBUG=true --var TAG=vk-gl-cts --var RELEASE="${CDP_RELEASE}"
 	rm Rockerfile.vk-gl-cts
 	cd -
     fi

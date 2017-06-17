@@ -4,6 +4,7 @@
 # ~~~
 #  rocker build -f Rockerfile.mesa [--attach]                                            \
 #    --var BUILD=autotools      # scons, autotools, windows, distcheck, gallium, android \
+#    [--var DEBUG=true]         # true, false                                            \
 #    [--var LLVM=3.3]           # 3.3, 3.6, 3.8, 3.9 or 4.0                              \
 #    [--var TAG=master]         # master, pre-release-17.0, pre-release-13.0, ...        \
 #    [--var RELEASE=master]     # master, pre-release/17.0, pre-release/13.0, ...
@@ -18,6 +19,7 @@
 {{ $image := (or .Env.DOCKER_IMAGE "igalia/mesa") }}
 {{ $ccachedir := (or .Env.CCACHE_DIR "~/.ccache") }}
 {{ $llvm_version := (or .LLVM "0.0") }}
+{{ $debug_build := (or .DEBUG "false") }}
 
 {{ if eq .BUILD "windows" }}
 FROM {{ $image }}:base
@@ -150,6 +152,7 @@ RUN export LLVM={{ $llvm_version }}.0\
   && ./autogen.sh --with-dri-drivers=""                             \
     --with-gallium-drivers=$GALLIUM_DRIVERS                         \
     {{ if ne $llvm_version "0.0" }} --enable-llvm --enable-llvm-shared-libs {{ end }}   \
+    {{ if eq $debug_build "true" }} --enable-debug {{ end }}              \
     --disable-glx --disable-gbm --disable-egl                       \
   && make                                                           \
   && make check                                                     \
@@ -168,6 +171,7 @@ RUN export LLVM={{ $llvm_version }}.0\
     --with-gallium-drivers=$GALLIUM_DRIVERS                         \
     --with-vulkan-drivers=$VULKAN_DRIVERS                           \
     {{ if ne $llvm_version "0.0" }} --enable-llvm --enable-llvm-shared-libs {{ end }}   \
+    {{ if eq $debug_build "true" }} --enable-debug {{ end }}              \
     --enable-glx-tls --enable-gbm --enable-egl                      \
   && make                                                           \
   && make check                                                     \

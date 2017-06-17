@@ -211,9 +211,7 @@ function build_mesa() {
     wget https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.mesa
     # make check is failing right now and we don't really need it
     sed -e 's/&& make check//g' -i Rockerfile.mesa
-    # compiling without debug will trigger dangerous segfauls. We will rather assert
-    sed -e 's/\(--with-vulkan-drivers\)/--enable-debug \1/g' -i Rockerfile.mesa
-    rocker build -f Rockerfile.mesa --var BUILD="autotools" --var LLVM="3.9" --var TAG=released-17.1.2."$CFPR_MESA_COMMIT"
+    rocker build -f Rockerfile.mesa --var BUILD="autotools" --var LLVM="3.9" --var DEBUG=true --var TAG=released-17.1.2."$CFPR_MESA_COMMIT"
     popd
 
     return 0
