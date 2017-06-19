@@ -19,7 +19,7 @@
 {{ $image := (or .Env.DOCKER_IMAGE "igalia/mesa") }}
 {{ $ccachedir := (or .Env.CCACHE_DIR "~/.ccache") }}
 {{ $llvm_version := (or .LLVM "0.0") }}
-{{ $debug_build := (or .DEBUG "false") }}
+{{ $debug_build := (or .DEBUG "true") }}
 
 {{ if eq .BUILD "windows" }}
 FROM {{ $image }}:base
@@ -152,7 +152,7 @@ RUN export LLVM={{ $llvm_version }}.0\
   && ./autogen.sh --with-dri-drivers=""                                                                                                         \
     --with-gallium-drivers=$GALLIUM_DRIVERS                                                                                                     \
     {{ if ne $llvm_version "0.0" }} --enable-llvm --enable-llvm-shared-libs {{ end }}                                                           \
-    {{ if eq $debug_build "true" }} --enable-debug {{ end }}                                                                                    \
+    {{ if ne $debug_build "false" }} --enable-debug {{ end }}                                                                                   \
     --disable-glx --disable-gbm --disable-egl                                                                                                   \
   && make                                                                                                                                       \
   && make check                                                                                                                                 \
@@ -171,7 +171,7 @@ RUN export LLVM={{ $llvm_version }}.0\
     --with-gallium-drivers=$GALLIUM_DRIVERS                                                                                                     \
     --with-vulkan-drivers=$VULKAN_DRIVERS                                                                                                       \
     {{ if ne $llvm_version "0.0" }} --enable-llvm --enable-llvm-shared-libs {{ end }}                                                           \
-    {{ if eq $debug_build "true" }} --enable-debug {{ end }}                                                                                    \
+    {{ if ne $debug_build "false" }} --enable-debug {{ end }}                                                                                   \
     --enable-glx-tls --enable-gbm --enable-egl                                                                                                  \
   && make                                                                                                                                       \
   && make check                                                                                                                                 \
