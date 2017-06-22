@@ -56,6 +56,8 @@ ENV SCONSFLAGS={{ .Env.MAKEFLAGS }}
 
 MOUNT {{ $ccachedir }}:/home/local/.ccache:Z
 
+RUN sudo chown -R local:local /home/local/.ccache
+
 {{ if eq .BUILD "android" }}
 RUN wget https://storage.googleapis.com/git-repo-downloads/repo \
   && chmod u+x repo                                             \

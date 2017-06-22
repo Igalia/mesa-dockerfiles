@@ -45,6 +45,8 @@ ENV MAKEFLAGS={{ .Env.MAKEFLAGS }}
 
 MOUNT {{ $ccachedir }}:/home/local/.ccache:Z
 
+RUN sudo chown -R local:local /home/local/.ccache
+
 ENV PATH=/usr/lib/ccache:$PATH
 
 ATTACH [ "/bin/bash" ]

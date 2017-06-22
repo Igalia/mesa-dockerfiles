@@ -52,6 +52,8 @@ RUN git show --stat > /home/local/piglit-head.txt
 
 MOUNT {{ $ccachedir }}:/home/local/.ccache:Z
 
+RUN sudo chown -R local:local /home/local/.ccache
+
 ENV PATH=/usr/lib/ccache:$PATH
 
 RUN make
