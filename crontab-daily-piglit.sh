@@ -278,6 +278,7 @@ function run_piglit_tests {
     fi
 
     CDP_EXTRA_ARGS="--verbosity $CDP_VERBOSITY $CDP_EXTRA_ARGS"
+    $CDP_CREATE_PIGLIT_REPORT && CDP_EXTRA_ARGS="--create-piglit-report $CDP_EXTRA_ARGS"
 
     for suite in $(test_suites); do
 	for driver in $CDP_MESA_DRIVERS; do
@@ -337,6 +338,7 @@ Options:
   --run-vk-cts            Run vk-cts
   --run-gl-cts            Run gl-cts
   --run-piglit            Run piglit
+  --create-piglit-report  Create results report
 
 HELP
 }
@@ -414,6 +416,10 @@ do
     --run-piglit)
 	CDP_RUN_PIGLIT=true
 	;;
+    # Create results report
+    --create-piglit-report)
+	CDP_CREATE_PIGLIT_REPORT=true
+	;;
     --*)
 	printf "%s\n" "Error: unknown option: $1" >&2
 	usage
@@ -470,6 +476,11 @@ CDP_DRY_RUN="${CDP_DRY_RUN:-false}"
 # ---------
 
 CDP_CLEAN="${CDP_CLEAN:-true}"
+
+# Create a report against the reference result?
+# ---------------------------------------------
+
+CDP_CREATE_PIGLIT_REPORT="${CDP_CREATE_PIGLIT_REPORT:-false}"
 
 # ---
 

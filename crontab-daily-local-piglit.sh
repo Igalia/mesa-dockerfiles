@@ -411,6 +411,7 @@ function run_tests {
     build_mesa $CFPR_MERGE_BASE_RUN
 
     CFPR_EXTRA_ARGS="--verbosity $CFPR_VERBOSITY $CFPR_EXTRA_ARGS"
+    $CFPR_CREATE_PIGLIT_REPORT && CFPR_EXTRA_ARGS="--create-piglit-report $CFPR_EXTRA_ARGS"
 
     if $CFPR_RUN_PIGLIT; then
     	build_piglit
@@ -510,6 +511,7 @@ Options:
   --run-vk-cts            Run vk-cts
   --run-gl-cts            Run gl-cts
   --run-piglit            Run piglit
+  --create-piglit-report  Create results report
 
 HELP
 }
@@ -617,6 +619,10 @@ do
     --run-piglit)
 	CFPR_RUN_PIGLIT=true
 	;;
+    # Create results report
+    --create-piglit-report)
+	CFPR_CREATE_PIGLIT_REPORT=true
+	;;
     --*)
 	printf "Error: unknown option: $1\n" >&2
 	usage
@@ -668,6 +674,12 @@ CFPR_RUN_PIGLIT="${CFPR_RUN_PIGLIT:-false}"
 # ---------
 
 CFPR_CLEAN="${CFPR_CLEAN:-true}"
+
+
+# Create a report against the reference result?
+# ---------------------------------------------
+
+CFPR_CREATE_PIGLIT_REPORT="${CFPR_CREATE_PIGLIT_REPORT:-false}"
 
 
 # Force clean

@@ -79,7 +79,7 @@ RUN cmake . && cmake --build .
 
 VOLUME /results
 
-CMD "/bin/sh" "-c" "cat /home/local/mesa-head.txt >> /results/mesa-head.txt && cat /home/local/piglit-head.txt >> /results/piglit-head.txt && export MESA_COMMIT=\$(grep commit /home/local/mesa-head.txt | cut -d \" \" -f 2) && /home/local/full-piglit-run.sh \$FPR_EXTRA_ARGS --run-piglit --create-piglit-report --base-path /home/local --piglit-path /home/local/piglit --piglit-results-path /results --driver \$GL_DRIVER --commit \$MESA_COMMIT"
+CMD "/bin/sh" "-c" "cat /home/local/mesa-head.txt >> /results/mesa-head.txt && cat /home/local/piglit-head.txt >> /results/piglit-head.txt && export MESA_COMMIT=\$(grep commit /home/local/mesa-head.txt | cut -d \" \" -f 2) && /home/local/full-piglit-run.sh \$FPR_EXTRA_ARGS --run-piglit --base-path /home/local --piglit-path /home/local/piglit --piglit-results-path /results --driver \$GL_DRIVER --commit \$MESA_COMMIT"
 
 {{ if .TAG }}
 TAG {{ $image }}:{{ .TAG }}
