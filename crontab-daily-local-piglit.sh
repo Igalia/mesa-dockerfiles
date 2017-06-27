@@ -79,6 +79,7 @@ function apply_verbosity() {
 
     if [ "x$1" != "xfull" ]; then
 	exec 1>/dev/null
+	CDLP_PROGRESS_FLAG="-q"
     fi
 
     if [ "x$1" == "xquiet" ]; then
@@ -138,7 +139,7 @@ function sanity_check() {
     fi
 
     pushd "$CDLP_MESA_PATH"
-    git fetch origin
+    git fetch $CDLP_PROGRESS_FLAG origin
     git show -s --pretty=format:%h "$1" > /dev/null
     CDLP_RESULT=$?
     popd
@@ -149,7 +150,7 @@ function sanity_check() {
     fi
 
     pushd "$CDLP_VK_GL_CTS_PATH"
-    git fetch origin
+    git fetch $CDLP_PROGRESS_FLAG origin
     git show -s --pretty=format:%h "$2" > /dev/null
     CDLP_RESULT=$?
     popd
@@ -192,23 +193,23 @@ function header {
 #   0 is success, an error code otherwise
 function build_mesa() {
     rm -rf "$CDLP_TEMP_PATH/mesa"
-    git clone "$CDLP_MESA_PATH" "$CDLP_TEMP_PATH/mesa"
+    git clone $CDLP_PROGRESS_FLAG "$CDLP_MESA_PATH" "$CDLP_TEMP_PATH/mesa"
     pushd "$CDLP_MESA_PATH"
     CDLP_ORIGIN_URL=$(git remote get-url origin)
     popd
     pushd "$CDLP_TEMP_PATH/mesa"
     git remote set-url origin "$CDLP_ORIGIN_URL"
-    git fetch origin
+    git fetch $CDLP_PROGRESS_FLAG origin
     git branch -m old
     if $1; then
 	COMMIT=$(git merge-base origin/master "$CDLP_MESA_BRANCH")
     else
 	COMMIT="$CDLP_MESA_BRANCH"
     fi
-    git checkout -b working "$COMMIT"
+    git checkout $CDLP_PROGRESS_FLAG -b working "$COMMIT"
     git branch -D old
     CDLP_MESA_COMMIT=$(git show -s --pretty=format:%h "$COMMIT")
-    wget https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.mesa
+    wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.mesa
     # make check is failing right now and we don't really need it
     sed -e 's/&& make check//g' -i Rockerfile.mesa
     rocker build -f Rockerfile.mesa --var BUILD="autotools" --var LLVM="3.9" --var DEBUG=true --var TAG=released-17.1.2."$CDLP_MESA_COMMIT"
@@ -244,32 +245,32 @@ function clean_mesa() {
 #   0 is success, an error code otherwise
 function build_vk_gl_cts() {
     rm -rf "$CDLP_TEMP_PATH/LoaderAndValidationLayers"
-    git clone "$CDLP_VK_LOADER_PATH" "$CDLP_TEMP_PATH/LoaderAndValidationLayers"
+    git clone $CDLP_PROGRESS_FLAG "$CDLP_VK_LOADER_PATH" "$CDLP_TEMP_PATH/LoaderAndValidationLayers"
     pushd "$CDLP_VK_LOADER_PATH"
     CDLP_ORIGIN_URL=$(git remote get-url origin)
     popd
     pushd "$CDLP_TEMP_PATH/LoaderAndValidationLayers"
     git remote set-url origin "$CDLP_ORIGIN_URL"
-    git fetch origin
+    git fetch $CDLP_PROGRESS_FLAG origin
     git branch -m old
-    git checkout -b working origin/master
+    git checkout $CDLP_PROGRESS_FLAG -b working origin/master
     git branch -D old
     popd
 
     rm -rf "$CDLP_TEMP_PATH/vk-gl-cts"
-    git clone "$CDLP_VK_GL_CTS_PATH" "$CDLP_TEMP_PATH/vk-gl-cts"
+    git clone $CDLP_PROGRESS_FLAG "$CDLP_VK_GL_CTS_PATH" "$CDLP_TEMP_PATH/vk-gl-cts"
     pushd "$CDLP_VK_GL_CTS_PATH"
     CDLP_ORIGIN_URL=$(git remote get-url origin)
     popd
     pushd "$CDLP_TEMP_PATH/vk-gl-cts"
     git remote set-url origin "$CDLP_ORIGIN_URL"
-    git fetch origin
+    git fetch $CDLP_PROGRESS_FLAG origin
     git branch -m old
-    git checkout -b working "$CDLP_VK_GL_CTS_BRANCH"
+    git checkout $CDLP_PROGRESS_FLAG -b working "$CDLP_VK_GL_CTS_BRANCH"
     git branch -D old
     popd
     pushd "$CDLP_TEMP_PATH"
-    wget https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.vk-gl-cts
+    wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.vk-gl-cts
     rocker build -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var TAG=vk-gl-cts --var RELEASE=released-17.1.2."$CDLP_MESA_COMMIT"
     popd
 
@@ -306,7 +307,7 @@ function build_piglit() {
     rm -rf "$CDLP_TEMP_PATH/piglit"
     mkdir -p "$CDLP_TEMP_PATH/piglit"
     pushd "$CDLP_TEMP_PATH/piglit"
-    wget https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.piglit
+    wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.piglit
     rocker build -f Rockerfile.piglit --var TAG=piglit --var RELEASE=released-17.1.2."$CDLP_MESA_COMMIT"
     popd
 
@@ -708,6 +709,8 @@ if [ $? -ne 0 ]; then
     exit 13
 fi
 
+apply_verbosity "$CDLP_VERBOSITY"
+
 
 # Sanity check
 # ------------
@@ -716,8 +719,6 @@ sanity_check "$CDLP_MESA_BRANCH" "$CDLP_VK_GL_CTS_BRANCH"
 if [ $? -ne 0 ]; then
     exit 2
 fi
-
-apply_verbosity "$CDLP_VERBOSITY"
 
 xhost +
 
