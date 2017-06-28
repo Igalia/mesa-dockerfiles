@@ -81,6 +81,7 @@ function apply_verbosity() {
 
     if [ "x$1" != "xfull" ]; then
 	exec 1>/dev/null
+	CDP_PROGRESS_FLAG="-q"
     fi
 
     if [ "x$1" == "xquiet" ]; then
@@ -255,7 +256,7 @@ function run_piglit_tests {
 	return 6
     fi
 
-    git pull
+    git pull $CDP_PROGRESS_FLAG
 
 
     if $CDP_RUN_PIGLIT; then
@@ -266,10 +267,10 @@ function run_piglit_tests {
     if $CDP_RUN_GL_CTS || $CDP_RUN_VK_CTS; then
 	cp Rockerfile.vk-gl-cts $HOME
 	cd $HOME/LoaderAndValidationLayers
-	git pull
+	git pull $CDP_PROGRESS_FLAG
 	cd -
 	cd $HOME/vk-gl-cts
-	git pull
+	git pull $CDP_PROGRESS_FLAG
 	cd -
 	cd $HOME
 	rocker build --pull -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var DEBUG=true --var TAG=vk-gl-cts --var RELEASE="${CDP_RELEASE}"
