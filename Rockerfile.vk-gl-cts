@@ -90,7 +90,7 @@ RUN ../update_external_sources.sh                      \
 
 WORKDIR /home/local/vk-gl-cts/build
 
-RUN python3 ../external/fetch_sources.py                  \
+RUN python2 ../external/fetch_sources.py                  \
   && cmake .. -DDEQP_TARGET=x11_egl                       \
   && find . -name link.txt -exec sed -i "s/;-/ -/g" {} \; \
   && cmake --build .
