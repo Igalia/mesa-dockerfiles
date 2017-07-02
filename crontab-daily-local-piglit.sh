@@ -128,7 +128,8 @@ function check_option_args() {
 # perform sanity check on the passed parameters:
 # arguments:
 #   $1 - an existing mesa's commit id
-#   $2 - an existing VK-GL-CTS' commit id
+#   $2 - an existing VK-CTS' commit id
+#   $3 - an existing GL-CTS' commit id
 # returns:
 #   0 is success, an error code otherwise
 function sanity_check() {
@@ -140,7 +141,7 @@ function sanity_check() {
 
     pushd "$CDLP_MESA_PATH"
     git fetch $CDLP_PROGRESS_FLAG origin
-    git show -s --pretty=format:%h "$1" > /dev/null
+    CDLP_MESA_BRANCH=$(git show -s --pretty=format:%h "$1")
     CDLP_RESULT=$?
     popd
     if [ $CDLP_RESULT -ne 0 ]; then
@@ -151,13 +152,22 @@ function sanity_check() {
 
     pushd "$CDLP_VK_GL_CTS_PATH"
     git fetch $CDLP_PROGRESS_FLAG origin
-    git show -s --pretty=format:%h "$2" > /dev/null
+    CDLP_VK_CTS_BRANCH=$(git show -s --pretty=format:%h "$2")
     CDLP_RESULT=$?
     popd
     if [ $CDLP_RESULT -ne 0 ]; then
-	printf "%s\n" "" "Error: VK-GL-CTS' commit id doesn't exist in the repository." "" >&2
+	printf "%s\n" "" "Error: VK-CTS' commit id doesn't exist in the repository." "" >&2
 	usage
 	return 4
+    fi
+    pushd "$CDLP_VK_GL_CTS_PATH"
+    CDLP_GL_CTS_BRANCH=$(git show -s --pretty=format:%h "$3")
+    CDLP_RESULT=$?
+    popd
+    if [ $CDLP_RESULT -ne 0 ]; then
+	printf "%s\n" "" "Error: GL-CTS' commit id doesn't exist in the repository." "" >&2
+	usage
+	return 5
     fi
 
     return 0
@@ -186,9 +196,8 @@ function header {
 #------------------------------------------------------------------------------
 #
 # builds a specific commit of mesa or the latest common commit with master
-#   $1 - whether to build the merge base against master or not
-# outputs:
-#   the requested commit hash
+#   $1 - mesa commit to use
+#   $2 - whether to build the merge base against master or not
 # returns:
 #   0 is success, an error code otherwise
 function build_mesa() {
@@ -201,10 +210,10 @@ function build_mesa() {
     git remote set-url origin "$CDLP_ORIGIN_URL"
     git fetch $CDLP_PROGRESS_FLAG origin
     git branch -m old
-    if $1; then
-	COMMIT=$(git merge-base origin/master "$CDLP_MESA_BRANCH")
+    if $2; then
+	COMMIT=$(git merge-base origin/master "$1")
     else
-	COMMIT="$CDLP_MESA_BRANCH"
+	COMMIT="$1"
     fi
     git checkout $CDLP_PROGRESS_FLAG -b working "$COMMIT"
     git branch -D old
@@ -241,10 +250,11 @@ function clean_mesa() {
 #------------------------------------------------------------------------------
 #
 # builds a specific commit of vk-gl-cts
+#   $1 - vk-gl-cts commit to use
 # returns:
 #   0 is success, an error code otherwise
 function build_vk_gl_cts() {
-    rm -rf "$CDLP_TEMP_PATH/LoaderAndValidationLayers"
+    rm -rf "$CDLP_TEMP_PATH/LoaderAndValidationLayers.$1"
     git clone $CDLP_PROGRESS_FLAG "$CDLP_VK_LOADER_PATH" "$CDLP_TEMP_PATH/LoaderAndValidationLayers"
     pushd "$CDLP_VK_LOADER_PATH"
     CDLP_ORIGIN_URL=$(git remote get-url origin)
@@ -257,7 +267,7 @@ function build_vk_gl_cts() {
     git branch -D old
     popd
 
-    rm -rf "$CDLP_TEMP_PATH/vk-gl-cts"
+    rm -rf "$CDLP_TEMP_PATH/vk-gl-cts.$1"
     git clone $CDLP_PROGRESS_FLAG "$CDLP_VK_GL_CTS_PATH" "$CDLP_TEMP_PATH/vk-gl-cts"
     pushd "$CDLP_VK_GL_CTS_PATH"
     CDLP_ORIGIN_URL=$(git remote get-url origin)
@@ -266,13 +276,17 @@ function build_vk_gl_cts() {
     git remote set-url origin "$CDLP_ORIGIN_URL"
     git fetch $CDLP_PROGRESS_FLAG origin
     git branch -m old
-    git checkout $CDLP_PROGRESS_FLAG -b working "$CDLP_VK_GL_CTS_BRANCH"
+    git checkout $CDLP_PROGRESS_FLAG -b working "$1"
     git branch -D old
     popd
     pushd "$CDLP_TEMP_PATH"
     wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.vk-gl-cts
-    rocker build -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var TAG=vk-gl-cts --var RELEASE=released-17.1.2."$CDLP_MESA_COMMIT"
+    rocker build -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var TAG=vk-gl-cts."$1" --var RELEASE=released-17.1.2."$CDLP_MESA_COMMIT"
     popd
+
+    mv "$CDLP_TEMP_PATH/LoaderAndValidationLayers" "$CDLP_TEMP_PATH/LoaderAndValidationLayers.$1"
+    mv "$CDLP_TEMP_PATH/vk-gl-cts" "$CDLP_TEMP_PATH/vk-gl-cts.$1"
+    mv "$CDLP_TEMP_PATH/Rockerfile.vk-gl-cts" "$CDLP_TEMP_PATH/Rockerfile.vk-gl-cts.$1"
 
     return 0
 }
@@ -283,13 +297,15 @@ function build_vk_gl_cts() {
 #------------------------------------------------------------------------------
 #
 # cleans the used vk_gl_cts's worktree
+#   $1 - vk-gl-cts commit to use
 # returns:
 #   0 is success, an error code otherwise
 function clean_vk_gl_cts() {
-    rm -rf "$CDLP_TEMP_PATH/vk-gl-cts"
-    rm -f "$CDLP_TEMP_PATH/Rockerfile.vk-gl-cts"
+    rm -rf "$CDLP_TEMP_PATH/LoaderAndValidationLayers.$1"
+    rm -rf "$CDLP_TEMP_PATH/vk-gl-cts.$1"
+    rm -f "$CDLP_TEMP_PATH/Rockerfile.vk-gl-cts.$1"
     if $CDLP_CLEAN; then
-	docker rmi igalia/mesa:vk-gl-cts
+	docker rmi igalia/mesa:vk-gl-cts."$1"
     fi
 
     return 0
@@ -409,7 +425,7 @@ function run_tests {
 
     pushd "$CDLP_TEMP_PATH/jail"
 
-    build_mesa $CDLP_MERGE_BASE_RUN
+    build_mesa "$CDLP_MESA_BRANCH" $CDLP_MERGE_BASE_RUN
 
     CDLP_EXTRA_ARGS="--verbosity $CDLP_VERBOSITY $CDLP_EXTRA_ARGS"
     $CDLP_CREATE_PIGLIT_REPORT && CDLP_EXTRA_ARGS="--create-piglit-report $CDLP_EXTRA_ARGS"
@@ -433,46 +449,48 @@ function run_tests {
     	clean_piglit
     fi
 
-    if $CDLP_RUN_GL_CTS || $CDLP_RUN_VK_CTS; then
-    	build_vk_gl_cts
+    if $CDLP_RUN_GL_CTS; then
+	build_vk_gl_cts "$CDLP_GL_CTS_BRANCH"
 
-	if $CDLP_RUN_GL_CTS; then
-    	    printf "%s\n" "" "Checking GL CTS progress ..." "" >&9
+	printf "%s\n" "" "Checking GL CTS progress ..." "" >&9
 
-	    # We restore the redirection so the output is managed by
-	    # the commands inside "docker run"
-	    restore_redirection
+	# We restore the redirection so the output is managed by the
+	# commands inside "docker run"
+	restore_redirection
 
-	    docker run --privileged --rm -t -v "${CDLP_PIGLIT_RESULTS_DIR}":/results:Z \
-		   -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
-		   -e FPR_EXTRA_ARGS="$CDLP_EXTRA_ARGS" \
-		   -e CTS="opengl" \
-		   -e GL_DRIVER="i965" igalia/mesa:vk-gl-cts
+	docker run --privileged --rm -t -v "${CDLP_PIGLIT_RESULTS_DIR}":/results:Z \
+	       -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
+	       -e FPR_EXTRA_ARGS="$CDLP_EXTRA_ARGS" \
+	       -e CTS="opengl" \
+	       -e GL_DRIVER="i965" igalia/mesa:vk-gl-cts."$CDLP_GL_CTS_BRANCH"
 
-	    apply_verbosity "$CDLP_VERBOSITY"
+	apply_verbosity "$CDLP_VERBOSITY"
 
-	    $CDLP_MERGE_BASE_RUN && create_gl_cts_reference "i965"
-	fi
+	$CDLP_MERGE_BASE_RUN && create_gl_cts_reference "i965"
 
-	if $CDLP_RUN_VK_CTS; then
-    	    printf "%s\n" "" "Checking VK CTS progress ..." "" >&9
+	clean_vk_gl_cts "$CDLP_GL_CTS_BRANCH"
+    fi
 
-	    # We restore the redirection so the output is managed by
-	    # the commands inside "docker run"
-	    restore_redirection
+    if $CDLP_RUN_VK_CTS; then
+	build_vk_gl_cts	"$CDLP_VK_CTS_BRANCH"
 
-	    docker run --privileged --rm -t -v "${CDLP_PIGLIT_RESULTS_DIR}":/results:Z \
-		   -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
-		   -e FPR_EXTRA_ARGS="--vk-cts-all-concurrent $CDLP_EXTRA_ARGS" \
-		   -e CTS="vulkan" \
-		   -e GL_DRIVER="anv" igalia/mesa:vk-gl-cts
+	printf "%s\n" "" "Checking VK CTS progress ..." "" >&9
 
-	    apply_verbosity "$CDLP_VERBOSITY"
+	# We restore the redirection so the output is managed by the
+	# commands inside "docker run"
+	restore_redirection
 
-	    $CDLP_MERGE_BASE_RUN && create_vk_cts_reference "anv"
-	fi
+	docker run --privileged --rm -t -v "${CDLP_PIGLIT_RESULTS_DIR}":/results:Z \
+	       -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
+	       -e FPR_EXTRA_ARGS="--vk-cts-all-concurrent $CDLP_EXTRA_ARGS" \
+	       -e CTS="vulkan" \
+	       -e GL_DRIVER="anv" igalia/mesa:vk-gl-cts."$CDLP_VK_CTS_BRANCH"
 
-    	clean_vk_gl_cts
+	apply_verbosity "$CDLP_VERBOSITY"
+
+	$CDLP_MERGE_BASE_RUN && create_vk_cts_reference "anv"
+
+	clean_vk_gl_cts	"$CDLP_VK_CTS_BRANCH"
     fi
 
     clean_mesa
@@ -493,7 +511,7 @@ usage() {
     basename="`expr "//$0" : '.*/\([^/]*\)'`"
     cat <<HELP
 
-Usage: $basename [options] --mesa-commit <mesa-commit-id> --vk-gl-cts-commit <vk-gl-cts-commit-id> --piglit-commit <piglit-commit-id>
+Usage: $basename [options] --mesa-commit <mesa-commit-id> --vk-cts-commit <vk-cts-commit-id> --gl-cts-commit <gl-cts-commit-id> --piglit-commit <piglit-commit-id>
 
 Options:
   --help                  Display this help and exit successfully
@@ -507,7 +525,8 @@ Options:
   --vk-loader-path        PATH to the LoaderAndValidationLayers repository
   --piglit-results-dir    PATH where to place the piglit results
   --mesa-commit           mesa commit to use
-  --vk-gl-cts-commit      VK-GL-CTS commit to use
+  --vk-cts-commit         VK-CTS commit to use
+  --gl-cts-commit         GL-CTS commit to use
   --merge-base-run        merge-base run
   --run-vk-cts            Run vk-cts
   --run-gl-cts            Run gl-cts
@@ -598,11 +617,17 @@ do
 	shift
 	CDLP_MESA_BRANCH=$1
 	;;
-    # VK-GL-CTS commit to use
-    --vk-gl-cts-commit)
+    # VK-CTS commit to use
+    --vk-cts-commit)
 	check_option_args $1 $2
 	shift
-	CDLP_VK_GL_CTS_BRANCH=$1
+	CDLP_VK_CTS_BRANCH=$1
+	;;
+    # GL-CTS commit to use
+    --gl-cts-commit)
+	check_option_args $1 $2
+	shift
+	CDLP_GL_CTS_BRANCH=$1
 	;;
     # merge-base run
     --merge-base-run)
@@ -691,7 +716,8 @@ CDLP_FORCE_CLEAN="${CDLP_FORCE_CLEAN:-false}"
 if $CDLP_FORCE_CLEAN; then
     clean_mesa
     clean_piglit
-    clean_vk_gl_cts
+    clean_vk_gl_cts "$CDLP_GL_CTS_BRANCH"
+    clean_vk_gl_cts "$CDLP_VK_CTS_BRANCH"
     printf "%s\n" "" "rm -Ir $CDLP_TEMP_PATH" ""
     rm -Ir "$CDLP_TEMP_PATH"
 
@@ -715,7 +741,7 @@ apply_verbosity "$CDLP_VERBOSITY"
 # Sanity check
 # ------------
 
-sanity_check "$CDLP_MESA_BRANCH" "$CDLP_VK_GL_CTS_BRANCH"
+sanity_check "$CDLP_MESA_BRANCH" "$CDLP_VK_CTS_BRANCH" "$CDLP_GL_CTS_BRANCH"
 if [ $? -ne 0 ]; then
     exit 2
 fi
