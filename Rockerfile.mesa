@@ -121,7 +121,7 @@ RUN export DRM_VERSION=`cat /home/local/mesa/configure.ac | egrep ^LIBDRM.*REQUI
 ATTACH [ "/bin/bash" ]
 
 {{ if eq .BUILD "android" }}
-RUN sed -i '1s/^/BOARD_GPU_DRIVERS := i915 i965 i915g r300g r600g nouveau swrast vc4 virgl\n/' external/mesa3d/Android.mk
+RUN sed -i '1s/^/BOARD_GPU_DRIVERS := i915 i965 i915g r300g r600g nouveau swrast freedreno vc4 virgl\n/' external/mesa3d/Android.mk
 RUN ln -sf /usr/bin/bison prebuilts/misc/linux-x86/bison/bison
 RUN [ "/bin/bash", "-c", "source build/envsetup.sh && lunch linaro_arm64-userdebug && make i965_dri i915_dri gallium_dri && lunch linaro_x86_64-userdebug && make i965_dri i915_dri gallium_dri && sudo rm -fr /home/local/aosp" ]
 
@@ -146,39 +146,39 @@ RUN ./autogen.sh                  \
   && sudo rm -fr /home/local/mesa
 {{ else if eq .BUILD "gallium" }}
 RUN export LLVM={{ $llvm_version }}.0\
-  && eval `cat configure.ac | egrep ^LLVM_REQUIRED`                                                                                             \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_GALLIUM ; then GALLIUM_DRIVERS=i915,svga,swrast,nouveau,r300,vc4,virgl,etnaviv,imx ; fi \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_R600 ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,r600 ; fi                                  \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADEONSI ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,radeonsi ; fi                          \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_SWR ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,swr ; fi                                    \
-  && ./autogen.sh --with-dri-drivers=""                                                                                                         \
-    --with-gallium-drivers=$GALLIUM_DRIVERS                                                                                                     \
-    {{ if ne $llvm_version "0.0" }} --enable-llvm --enable-llvm-shared-libs {{ end }}                                                           \
-    {{ if ne $debug_build "false" }} --enable-debug {{ end }}                                                                                   \
-    --disable-glx --disable-gbm --disable-egl                                                                                                   \
-  && make                                                                                                                                       \
-  && make check                                                                                                                                 \
+  && eval `cat configure.ac | egrep ^LLVM_REQUIRED`                                                                                                       \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_GALLIUM ; then GALLIUM_DRIVERS=i915,svga,swrast,nouveau,r300,freedreno,vc4,virgl,etnaviv,imx ; fi \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_R600 ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,r600 ; fi                                            \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADEONSI ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,radeonsi ; fi                                    \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_SWR ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,swr ; fi                                              \
+  && ./autogen.sh --with-dri-drivers=""                                                                                                                   \
+    --with-gallium-drivers=$GALLIUM_DRIVERS                                                                                                               \
+    {{ if ne $llvm_version "0.0" }} --enable-llvm --enable-llvm-shared-libs {{ end }}                                                                     \
+    {{ if ne $debug_build "false" }} --enable-debug {{ end }}                                                                                             \
+    --disable-glx --disable-gbm --disable-egl                                                                                                             \
+  && make                                                                                                                                                 \
+  && make check                                                                                                                                           \
   && sudo rm -fr /home/local/mesa
 {{ else }}
 RUN export LLVM={{ $llvm_version }}.0\
-  && eval `cat configure.ac | egrep ^LLVM_REQUIRED`                                                                                             \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_GALLIUM ; then GALLIUM_DRIVERS=i915,svga,swrast,nouveau,r300,vc4,virgl,etnaviv,imx ; fi \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_R600 ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,r600 ; fi                                  \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADEONSI ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,radeonsi ; fi                          \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_SWR ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,swr ; fi                                    \
-  && VULKAN_DRIVERS=intel                                                                                                                       \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADV ; then VULKAN_DRIVERS=$VULKAN_DRIVERS,radeon ; fi                                  \
-  && ./autogen.sh --with-egl-platforms=x11,drm,wayland                                                                                          \
-    --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                                                                                     \
-    --with-gallium-drivers=$GALLIUM_DRIVERS                                                                                                     \
-    --with-vulkan-drivers=$VULKAN_DRIVERS                                                                                                       \
-    {{ if ne $llvm_version "0.0" }} --enable-llvm --enable-llvm-shared-libs {{ end }}                                                           \
-    {{ if ne $debug_build "false" }} --enable-debug {{ end }}                                                                                   \
-    --enable-glx-tls --enable-gbm --enable-egl                                                                                                  \
-  && make                                                                                                                                       \
-  && make check                                                                                                                                 \
-  && sudo make install                                                                                                                          \
-  && sudo ldconfig                                                                                                                              \
+  && eval `cat configure.ac | egrep ^LLVM_REQUIRED`                                                                                                       \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_GALLIUM ; then GALLIUM_DRIVERS=i915,svga,swrast,nouveau,r300,freedreno,vc4,virgl,etnaviv,imx ; fi \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_R600 ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,r600 ; fi                                            \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADEONSI ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,radeonsi ; fi                                    \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_SWR ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,swr ; fi                                              \
+  && VULKAN_DRIVERS=intel                                                                                                                                 \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADV ; then VULKAN_DRIVERS=$VULKAN_DRIVERS,radeon ; fi                                            \
+  && ./autogen.sh --with-egl-platforms=x11,drm,wayland                                                                                                    \
+    --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                                                                                               \
+    --with-gallium-drivers=$GALLIUM_DRIVERS                                                                                                               \
+    --with-vulkan-drivers=$VULKAN_DRIVERS                                                                                                                 \
+    {{ if ne $llvm_version "0.0" }} --enable-llvm --enable-llvm-shared-libs {{ end }}                                                                     \
+    {{ if ne $debug_build "false" }} --enable-debug {{ end }}                                                                                             \
+    --enable-glx-tls --enable-gbm --enable-egl                                                                                                            \
+  && make                                                                                                                                                 \
+  && make check                                                                                                                                           \
+  && sudo make install                                                                                                                                    \
+  && sudo ldconfig                                                                                                                                        \
   && sudo rm -fr /home/local/mesa
 {{ end }}
 
