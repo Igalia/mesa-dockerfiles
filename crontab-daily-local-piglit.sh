@@ -433,18 +433,24 @@ function run_tests {
     if $CDLP_RUN_PIGLIT; then
     	build_piglit
 
-	# We restore the redirection so the output is managed by the
-	# commands inside "docker run"
-	restore_redirection
+	if ! $CDLP_DRY_RUN; then
 
-	docker run --privileged --rm -t -v "${CDLP_PIGLIT_RESULTS_DIR}":/results:Z \
-	       -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
-	       -e FPR_EXTRA_ARGS="$CDLP_EXTRA_ARGS" \
-	       -e GL_DRIVER="i965" igalia/mesa:piglit
+	    printf "%s\n" "" "Checking piglit progress ..." "" >&9
 
-	apply_verbosity "$CDLP_VERBOSITY"
+	    # We restore the redirection so the output is managed by
+	    # the commands inside "docker run"
+	    restore_redirection
 
-	$CDLP_MERGE_BASE_RUN && create_piglit_reference "i965"
+	    docker run --privileged --rm -t -v "${CDLP_PIGLIT_RESULTS_DIR}":/results:Z \
+		   -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
+		   -e FPR_EXTRA_ARGS="$CDLP_EXTRA_ARGS" \
+		   -e GL_DRIVER="i965" igalia/mesa:piglit
+
+	    apply_verbosity "$CDLP_VERBOSITY"
+
+	    $CDLP_MERGE_BASE_RUN && create_piglit_reference "i965"
+
+	fi
 
     	clean_piglit
     fi
@@ -452,21 +458,25 @@ function run_tests {
     if $CDLP_RUN_GL_CTS; then
 	build_vk_gl_cts "$CDLP_GL_CTS_BRANCH"
 
-	printf "%s\n" "" "Checking GL CTS progress ..." "" >&9
+	if ! $CDLP_DRY_RUN; then
 
-	# We restore the redirection so the output is managed by the
-	# commands inside "docker run"
-	restore_redirection
+	    printf "%s\n" "" "Checking GL CTS progress ..." "" >&9
 
-	docker run --privileged --rm -t -v "${CDLP_PIGLIT_RESULTS_DIR}":/results:Z \
-	       -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
-	       -e FPR_EXTRA_ARGS="$CDLP_EXTRA_ARGS" \
-	       -e CTS="opengl" \
-	       -e GL_DRIVER="i965" igalia/mesa:vk-gl-cts."$CDLP_GL_CTS_BRANCH"
+	    # We restore the redirection so the output is managed by
+	    # the commands inside "docker run"
+	    restore_redirection
 
-	apply_verbosity "$CDLP_VERBOSITY"
+	    docker run --privileged --rm -t -v "${CDLP_PIGLIT_RESULTS_DIR}":/results:Z \
+		   -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
+		   -e FPR_EXTRA_ARGS="$CDLP_EXTRA_ARGS" \
+		   -e CTS="opengl" \
+		   -e GL_DRIVER="i965" igalia/mesa:vk-gl-cts."$CDLP_GL_CTS_BRANCH"
 
-	$CDLP_MERGE_BASE_RUN && create_gl_cts_reference "i965"
+	    apply_verbosity "$CDLP_VERBOSITY"
+
+	    $CDLP_MERGE_BASE_RUN && create_gl_cts_reference "i965"
+
+	fi
 
 	clean_vk_gl_cts "$CDLP_GL_CTS_BRANCH"
     fi
@@ -474,21 +484,25 @@ function run_tests {
     if $CDLP_RUN_VK_CTS; then
 	build_vk_gl_cts	"$CDLP_VK_CTS_BRANCH"
 
-	printf "%s\n" "" "Checking VK CTS progress ..." "" >&9
+	if ! $CDLP_DRY_RUN; then
 
-	# We restore the redirection so the output is managed by the
-	# commands inside "docker run"
-	restore_redirection
+	    printf "%s\n" "" "Checking VK CTS progress ..." "" >&9
 
-	docker run --privileged --rm -t -v "${CDLP_PIGLIT_RESULTS_DIR}":/results:Z \
-	       -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
-	       -e FPR_EXTRA_ARGS="--vk-cts-all-concurrent $CDLP_EXTRA_ARGS" \
-	       -e CTS="vulkan" \
-	       -e GL_DRIVER="anv" igalia/mesa:vk-gl-cts."$CDLP_VK_CTS_BRANCH"
+	    # We restore the redirection so the output is managed by
+	    # the commands inside "docker run"
+	    restore_redirection
 
-	apply_verbosity "$CDLP_VERBOSITY"
+	    docker run --privileged --rm -t -v "${CDLP_PIGLIT_RESULTS_DIR}":/results:Z \
+		   -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
+		   -e FPR_EXTRA_ARGS="--vk-cts-all-concurrent $CDLP_EXTRA_ARGS" \
+		   -e CTS="vulkan" \
+		   -e GL_DRIVER="anv" igalia/mesa:vk-gl-cts."$CDLP_VK_CTS_BRANCH"
 
-	$CDLP_MERGE_BASE_RUN && create_vk_cts_reference "anv"
+	    apply_verbosity "$CDLP_VERBOSITY"
+
+	    $CDLP_MERGE_BASE_RUN && create_vk_cts_reference "anv"
+
+	fi
 
 	clean_vk_gl_cts	"$CDLP_VK_CTS_BRANCH"
     fi
@@ -515,6 +529,7 @@ Usage: $basename [options] --mesa-commit <mesa-commit-id> --vk-cts-commit <vk-ct
 
 Options:
   --help                  Display this help and exit successfully
+  --dry-run               Does everything except running the tests
   --verbosity             Which verbosity level to use [full|normal|quite]. Default, normal.
   --no-clean              Do not clean the created images
   --force-clean           Forces the cleaning of the working env
@@ -560,6 +575,10 @@ do
     --help)
 	usage
 	exit 0
+	;;
+    # Does everything except running the tests
+    --dry-run)
+	CDLP_DRY_RUN=true
 	;;
     # Which verbosity level to use [full|normal|quite]. Default, normal.
     --verbosity)
@@ -702,6 +721,12 @@ CDLP_RUN_PIGLIT="${CDLP_RUN_PIGLIT:-false}"
 CDLP_CLEAN="${CDLP_CLEAN:-true}"
 
 
+# dry run?
+# --------
+
+CDLP_DRY_RUN="${CDLP_DRY_RUN:-false}"
+
+
 # Create a report against the reference result?
 # ---------------------------------------------
 
@@ -747,6 +772,9 @@ if [ $? -ne 0 ]; then
 fi
 
 xhost +
+
+# ---
+
 
 run_tests
 
