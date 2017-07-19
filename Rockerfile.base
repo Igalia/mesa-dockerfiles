@@ -145,6 +145,16 @@ RUN wget https://wayland.freedesktop.org/releases/wayland-1.13.0.tar.xz         
   && sudo ldconfig                                                                      \
   && sudo rm -fr ../wayland-1.13.0
 
+RUN wget https://wayland.freedesktop.org/releases/wayland-protocols-1.8.tar.xz          \
+  && tar -Jxvf wayland-protocols-1.8.tar.xz                                             \
+  && rm wayland-protocols-1.8.tar.xz                                                    \
+  && cd wayland-protocols-1.8                                                           \
+  && ./configure                                                                        \
+  && make                                                                               \
+  && sudo make install                                                                  \
+  && sudo ldconfig                                                                      \
+  && sudo rm -fr ../wayland-protocols-1.8
+
 USER root
 
 TAG {{ $image }}:base
