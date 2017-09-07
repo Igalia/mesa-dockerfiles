@@ -5,6 +5,7 @@
 #  rocker build -f Rockerfile.mesa [--attach]                                            \
 #    --var BUILD=autotools      # scons, autotools, windows, distcheck, gallium, android \
 #    [--var DEBUG=true]         # true, false                                            \
+#    [--var TAR=false]          # true, false                                            \
 #    [--var LLVM=3.3]           # 3.3, 3.6, 3.8, 3.9 or 4.0                              \
 #    [--var TAG=master]         # master, pre-release-17.0, pre-release-13.0, ...        \
 #    [--var RELEASE=master]     # master, pre-release/17.0, pre-release/13.0, ...
@@ -20,8 +21,11 @@
 {{ $ccachedir := (or .Env.CCACHE_DIR "~/.ccache") }}
 {{ $llvm_version := (or .LLVM "0.0") }}
 {{ $debug_build := (or .DEBUG "true") }}
+{{ $tar_build := (or .TAR "false") }}
 
-{{ if eq .BUILD "windows" }}
+{{ if eq $tar_build "true" }}
+FROM {{ $image }}:{{ .TAG }}.distcheck
+{{ else if eq .BUILD "windows"}}
 FROM {{ $image }}:base
 {{ else if eq .BUILD "android"}}
 FROM ubuntu:xenial
@@ -103,6 +107,7 @@ RUN git show --stat > /home/local/mesa-head.txt
 
 {{ end }}
 
+{{ if ne $tar_build "true" }}
 {{ if ne .BUILD "android" }}
 RUN export DRM_VERSION=`cat /home/local/mesa/configure.ac | egrep ^LIBDRM.*REQUIRED| cut -f2 -d= | sort -nr | head -n 1` \
   && wget http://dri.freedesktop.org/libdrm/libdrm-$DRM_VERSION.tar.bz2                                                  \
@@ -115,7 +120,15 @@ RUN export DRM_VERSION=`cat /home/local/mesa/configure.ac | egrep ^LIBDRM.*REQUI
   && sudo ldconfig                                                                                                       \
   && sudo rm -fr ../libdrm-$DRM_VERSION                                                                                  \
   && unset DRM_VERSION
+{{ end }}
+{{ else }}
+WORKDIR /home/local
 
+RUN __version=`cat /home/local/VERSION`          \
+  && tar -xaf /home/local/mesa-$__version.tar.xz \
+  && mv mesa-$__version mesa-distcheck
+
+WORKDIR /home/local/mesa-distcheck
 {{ end }}
 
 ATTACH [ "/bin/bash" ]
@@ -141,8 +154,11 @@ RUN scons platform=windows toolchain=crossmingw \
   && sudo rm -fr /home/local/mesa
 
 {{ else if eq .BUILD "distcheck" }}
-RUN ./autogen.sh                  \
-  && make distcheck               \
+RUN ./autogen.sh                            \
+  && make distcheck                         \
+  && __version=`cat VERSION`                \
+  && mv VERSION /home/local/                \
+  && mv mesa-$__version.tar.xz /home/local/ \
   && sudo rm -fr /home/local/mesa
 {{ else if eq .BUILD "gallium" }}
 RUN export LLVM={{ $llvm_version }}.0\
@@ -180,6 +196,10 @@ RUN export LLVM={{ $llvm_version }}.0\
   && sudo make install                                                                                                                                    \
   && sudo ldconfig                                                                                                                                        \
   && sudo rm -fr /home/local/mesa
+{{ end }}
+
+{{ if eq $tar_build "true" }}
+RUN sudo rm -fr /home/local/mesa-distcheck
 {{ end }}
 
 WORKDIR /home/local
