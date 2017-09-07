@@ -21,8 +21,11 @@ before_script:
 after_success:
   - if [[ -n "$DOCKER_USERNAME" && "$TRAVIS_BRANCH" == "master" ]]; then
       docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-      docker push ${DOCKER_IMAGE:-igalia/mesa}:base;
+      docker push ${DOCKER_IMAGE:-igalia/mesa}:${LLVM:+llvm-}${LLVM:-base};
     fi
+
+script:
+  - ./rocker build -f Rockerfile.llvm --var LLVM=$LLVM
 
 jobs:
   include:
@@ -32,50 +35,7 @@ jobs:
 
     - stage: Build LLVM
       env: LLVM=3.3
-      script:
-        - ./rocker build -f Rockerfile.llvm --var LLVM=$LLVM
-      after_success:
-        - if [[ -n "$DOCKER_USERNAME" && "$TRAVIS_BRANCH" == "master" ]]; then
-            docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-            docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-$LLVM;
-          fi
-
-    - stage: Build LLVM
-      env: LLVM=3.6
-      script:
-        - ./rocker build -f Rockerfile.llvm --var LLVM=$LLVM
-      after_success:
-        - if [[ -n "$DOCKER_USERNAME" && "$TRAVIS_BRANCH" == "master" ]]; then
-            docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-            docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-$LLVM;
-          fi
-
-    - stage: Build LLVM
-      env: LLVM=3.8
-      script:
-        - ./rocker build -f Rockerfile.llvm --var LLVM=$LLVM
-      after_success:
-        - if [[ -n "$DOCKER_USERNAME" && "$TRAVIS_BRANCH" == "master" ]]; then
-            docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-            docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-$LLVM;
-          fi
-
-    - stage: Build LLVM
-      env: LLVM=3.9
-      script:
-        - ./rocker build -f Rockerfile.llvm --var LLVM=$LLVM
-      after_success:
-        - if [[ -n "$DOCKER_USERNAME" && "$TRAVIS_BRANCH" == "master" ]]; then
-            docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-            docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-$LLVM;
-          fi
-
-    - stage: Build LLVM
-      env: LLVM=4.0
-      script:
-        - ./rocker build -f Rockerfile.llvm --var LLVM=$LLVM
-      after_success:
-        - if [[ -n "$DOCKER_USERNAME" && "$TRAVIS_BRANCH" == "master" ]]; then
-            docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-            docker push ${DOCKER_IMAGE:-igalia/mesa}:llvm-$LLVM;
-          fi
+    - env: LLVM=3.6
+    - env: LLVM=3.8
+    - env: LLVM=3.9
+    - env: LLVM=4.0
