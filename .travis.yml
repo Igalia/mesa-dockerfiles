@@ -29,6 +29,25 @@ script:
 
 jobs:
   include:
+    - stage: Validate
+      install: npm install -g dockerlint
+      script:
+        - ./rocker build -f Rockerfile.base --print > Dockerfile
+        - dockerlint Dockerfile
+        - ./rocker build -f Rockerfile.llvm --var LLVM=3.9 --print > Dockerfile
+        - dockerlint Dockerfile
+        - ./rocker build -f Rockerfile.megaglest --var RELEASE=master --print > Dockerfile
+        - dockerlint Dockerfile
+        - ./rocker build -f Rockerfile.mesa --var BUILD=autotools --print > Dockerfile
+        - dockerlint Dockerfile
+        - ./rocker build -f Rockerfile.piglit --var RELEASE=master --print > Dockerfile
+        - dockerlint Dockerfile
+        - ./rocker build -f Rockerfile.shader-db --var RELEASE=master --var VIDEO_GID=1000 --print > Dockerfile
+        - dockerlint Dockerfile
+        - ./rocker build -f Rockerfile.vk-gl-cts --var RELEASE=master --var VIDEO_GID=1000 --print > Dockerfile
+        - dockerlint Dockerfile
+      after_success: skip
+
     - stage: Build Base
       script:
         - ./rocker build -f Rockerfile.base --var USE_TXC_DXTN=${USE_TXC_DXTN:-no}
@@ -39,3 +58,5 @@ jobs:
     - env: LLVM=3.8
     - env: LLVM=3.9
     - env: LLVM=4.0
+
+
