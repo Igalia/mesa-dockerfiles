@@ -27,6 +27,7 @@ RUN apt-get update                                                              
     libpciaccess-dev libxxf86vm-dev python-setuptools python-wheel bzip2 make          \
     mesa-common-dev libxcb-dri3-dev libxcb-present-dev libxcb-glx0-dev xutils-dev      \
     libxcb-dri2-0-dev libexpat1-dev xz-utils libedit-dev libffi-dev libxml2-dev        \
+    libunwind-dev                                                                      \
   && rm -fr /var/lib/apt/lists/*
 
 RUN pip install mako
