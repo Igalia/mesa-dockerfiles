@@ -18,7 +18,7 @@
 #              -e DISPLAY=unix$DISPLAY                            \
 #              [-e LIBGL_ALWAYS_SOFTWARE=1]                       \
 #              [-e GALLIUM_DRIVER=$GALLIUM_DRIVER]                \
-#              igalia/mesa:vk-gl-cts
+#              igalia/mesa:megaglest
 # ~~~
 #
 # GALLIUM_DRIVER = [ llvmpipe, swr, softpipe ]
