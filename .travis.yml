@@ -58,5 +58,6 @@ jobs:
     - env: LLVM=3.8
     - env: LLVM=3.9
     - env: LLVM=4.0
+    - env: LLVM=5.0
 
 
