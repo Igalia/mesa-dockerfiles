@@ -37,18 +37,22 @@ FROM {{ $image }}:llvm-{{ .LLVM }}
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
-RUN apt-get update                                      \
-  && apt-get -y --no-install-recommends install git     \
-     {{ if eq .BUILD "windows" }}mingw-w64{{ end }}     \
-     {{ if eq .BUILD "android" }}                       \
-       wget openjdk-8-jdk python sudo make gcc gettext  \
-       python-mako bison libc6-dev xz-utils             \
-     {{ end }}                                          \
+{{ if eq .BUILD "windows" }}
+RUN apt-get update                                              \
+  && apt-get -y --no-install-recommends install mingw-w64       \
   && rm -fr /var/lib/apt/lists/*
+{{ end }}
 
 {{ if eq .BUILD "android" }}
+RUN apt-get update                                      \
+  && apt-get -y --no-install-recommends install wget    \
+    openjdk-8-jdk python sudo make gcc gettext bison    \
+    python-mako libc6-dev xz-utils                      \
+  && rm -fr /var/lib/apt/lists/*
+
 RUN adduser --gecos "" local && passwd -d local && adduser local sudo
 {{ end }}
+
 USER local
 
 WORKDIR /home/local
