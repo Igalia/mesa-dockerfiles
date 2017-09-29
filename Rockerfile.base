@@ -19,6 +19,8 @@ FROM ubuntu:xenial
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
+ENV LC_ALL=C.UTF-8
+
 RUN apt-get update                                                                     \
   && apt-get --no-install-recommends -y install autoconf gcc g++ sudo cmake patch      \
     automake pkg-config libtool-bin bison flex python-pip libpthread-stubs0-dev        \
