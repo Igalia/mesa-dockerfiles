@@ -22,7 +22,7 @@ LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 ENV LC_ALL=C.UTF-8
 
 RUN apt-get update                                                                     \
-  && apt-get --no-install-recommends -y install autoconf gcc g++ sudo cmake patch      \
+  && apt-get --no-install-recommends -y install autoconf gcc g++ sudo cmake patch git  \
     automake pkg-config libtool-bin bison flex python-pip libpthread-stubs0-dev        \
     wget libxau-dev libx11-dev libxext-dev libxdamage-dev libx11-xcb-dev gettext       \
     zlib1g-dev scons libelf-dev libxvmc-dev libvdpau-dev libva-dev libclc-dev ccache   \
