@@ -2,12 +2,12 @@
 # This builds and installs Mesa.
 #
 # ~~~
-#  rocker build -f Rockerfile.mesa [--attach]                                            \
-#    --var BUILD=autotools      # scons, autotools, windows, distcheck, gallium, android \
-#    [--var DEBUG=true]         # true, false                                            \
-#    [--var TAR=false]          # true, false                                            \
-#    [--var LLVM=3.3]           # 3.3, 3.6, 3.8, 3.9, 4.0 or 5.0                         \
-#    [--var TAG=master]         # master, pre-release-17.0, pre-release-13.0, ...        \
+#  rocker build -f Rockerfile.mesa [--attach]                                                   \
+#    --var BUILD=autotools      # meson, scons, autotools, windows, distcheck, gallium, android \
+#    [--var DEBUG=true]         # true, false                                                   \
+#    [--var TAR=false]          # true, false                                                   \
+#    [--var LLVM=3.3]           # 3.3, 3.6, 3.8, 3.9, 4.0 or 5.0                                \
+#    [--var TAG=master]         # master, pre-release-17.0, pre-release-13.0, ...               \
 #    [--var RELEASE=master]     # master, pre-release/17.0, pre-release/13.0, ...
 # ~~~
 #
@@ -51,6 +51,15 @@ RUN apt-get update                                      \
   && rm -fr /var/lib/apt/lists/*
 
 RUN adduser --gecos "" local && passwd -d local && adduser local sudo
+{{ end }}
+
+{{ if eq .BUILD "meson" }}
+RUN apt-get update                                              \
+  && apt-get -y --no-install-recommends install libgtest-dev    \
+    python3-pip python3-setuptools                              \
+  && rm -fr /var/lib/apt/lists/*
+
+RUN pip3 install meson ninja
 {{ end }}
 
 USER local
@@ -178,6 +187,13 @@ RUN export LLVM={{ $llvm_version }}.0\
     --disable-glx --disable-gbm --disable-egl                                                                                                             \
   && make                                                                                                                                                 \
   && make check                                                                                                                                           \
+  && sudo rm -fr /home/local/mesa
+{{ else if eq .BUILD "meson" }}
+RUN meson -Dbuild-tests=true _build                                                                                                                       \
+  && ninja -C _build                                                                                                                                      \
+  && ninja -C _build test                                                                                                                                 \
+  && sudo ninja -C _build install                                                                                                                         \
+  && sudo ldconfig                                                                                                                                        \
   && sudo rm -fr /home/local/mesa
 {{ else }}
 RUN export LLVM={{ $llvm_version }}.0\
