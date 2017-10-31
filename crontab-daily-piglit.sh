@@ -156,8 +156,11 @@ function cleanup {
 	    if $CDP_RUN_PIGLIT; then
 		docker rmi igalia/mesa:piglit
 	    fi
-	    if $CDP_RUN_VK_CTS || $CDP_RUN_GL_CTS; then
-		docker rmi igalia/mesa:vk-gl-cts
+	    if $CDP_RUN_GL_CTS; then
+		docker rmi igalia/mesa:gl-cts
+	    fi
+	    if $CDP_RUN_VK_CTS; then
+		docker rmi igalia/mesa:vk-cts
 	    fi
 	fi
     fi
@@ -264,16 +267,32 @@ function run_piglit_tests {
 	CDP_TEST_SUITES="piglit $CDP_TEST_SUITES"
     fi
 
-    if $CDP_RUN_GL_CTS || $CDP_RUN_VK_CTS; then
+    if $CDP_RUN_GL_CTS; then
 	cp Rockerfile.vk-gl-cts $HOME
 	cd $HOME/LoaderAndValidationLayers
 	git pull $CDP_PROGRESS_FLAG
 	cd -
 	cd $HOME/vk-gl-cts
+	git checkout $CDP_PROGRESS_FLAG $CDP_GL_CTS_BRANCH
 	git pull $CDP_PROGRESS_FLAG
 	cd -
 	cd $HOME
-	rocker build --pull -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var DEBUG=true --var TAG=vk-gl-cts --var RELEASE="${CDP_RELEASE}"
+	rocker build --pull -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var DEBUG=true --var TAG=gl-cts --var RELEASE="${CDP_RELEASE}"
+	rm Rockerfile.vk-gl-cts
+	cd -
+    fi
+
+    if $CDP_RUN_VK_CTS; then
+	cp Rockerfile.vk-gl-cts $HOME
+	cd $HOME/LoaderAndValidationLayers
+	git pull $CDP_PROGRESS_FLAG
+	cd -
+	cd $HOME/vk-gl-cts
+	git checkout $CDP_PROGRESS_FLAG $CDP_VK_CTS_BRANCH
+	git pull $CDP_PROGRESS_FLAG
+	cd -
+	cd $HOME
+	rocker build --pull -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var DEBUG=true --var TAG=vk-cts --var RELEASE="${CDP_RELEASE}"
 	rm Rockerfile.vk-gl-cts
 	cd -
     fi
@@ -298,14 +317,16 @@ function run_piglit_tests {
 		elif [ "x$suite" = "xopengl" ] || [ "x$suite" = "xvulkan" ]; then
 		    if [ "x$suite" = "xopengl" ]; then
 			CDP_CTS_EXTRA_ARGS="$CDP_EXTRA_ARGS"
+			CDP_CTS_TARGET="gl-cts"
 		    else
 			CDP_CTS_EXTRA_ARGS="--vk-cts-all-concurrent $CDP_EXTRA_ARGS"
+			CDP_CTS_TARGET="vk-cts"
 		    fi
 		    docker run --privileged --rm -t -v "${CDP_PIGLIT_RESULTS_DIR}":/results:Z \
 			   -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
 			   -e FPR_EXTRA_ARGS="$CDP_CTS_EXTRA_ARGS" \
 			   -e CTS="$suite" \
-			   -e GL_DRIVER="$corrected_driver" igalia/mesa:vk-gl-cts
+			   -e GL_DRIVER="$corrected_driver" igalia/mesa:"${CDP_CTS_TARGET}"
 		fi
 		apply_verbosity "$CDP_VERBOSITY"
 	    fi
@@ -408,14 +429,23 @@ do
     # Run vk-cts
     --run-vk-cts)
 	CDP_RUN_VK_CTS=true
+	check_option_args $1 $2
+	shift
+	CDP_VK_CTS_BRANCH=$1
 	;;
     # Run gl-cts
     --run-gl-cts)
 	CDP_RUN_GL_CTS=true
+	check_option_args $1 $2
+	shift
+	CDP_GL_CTS_BRANCH=$1
 	;;
     # Run piglit
     --run-piglit)
 	CDP_RUN_PIGLIT=true
+	check_option_args $1 $2
+	shift
+	CDP_PIGLIT_BRANCH=$1
 	;;
     # Create results report
     --create-piglit-report)
