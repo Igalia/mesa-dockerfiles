@@ -345,22 +345,25 @@ usage() {
     basename="`expr "//$0" : '.*/\([^/]*\)'`"
     cat <<HELP
 
-Usage: $basename [options] <driver>
+Usage: $basename [options] --release <tag> <driver>
 
 Where "driver" is one of [i965|anv|llvmpipe|swr|softpipe]
 
 Options:
-  --dry-run               Does everything except running the tests
-  --no-clean              Do not clean the created image
-  --verbosity             Which verbosity level to use [full|normal|quite]. Default, normal.
-  --help                  Display this help and exit successfully
-  --mesa-dockerfiles-dir  PATH to the mesa-dockerfiles.git repository
-  --piglit-results-dir    PATH where to place the piglit results
-  --docker-ccache-dir     PATH where for ccache's directory
-  --run-vk-cts            Run vk-cts
-  --run-gl-cts            Run gl-cts
-  --run-piglit            Run piglit
-  --create-piglit-report  Create results report
+  --dry-run                        Does everything except running the tests
+  --no-clean                       Do not clean the created image
+  --verbosity [full|normal|quiet]  Which verbosity level to use
+                                   [full|normal|quite]. Default, normal.
+  --help                           Display this help and exit successfully
+  --release <tag>                  Use the release docker image tagged as <tag>
+  --mesa-dockerfiles-dir <path>    <path> to the mesa-dockerfiles.git
+                                   repository
+  --piglit-results-dir <path>      <path> where to place the piglit results
+  --docker-ccache-dir <path>       <path> where for ccache's directory
+  --run-vk-cts <branch>            Run against the vk-cts <branch>
+  --run-gl-cts <branch>            Run against the gl-cts <branch>
+  --run-piglit <branch>            Run against the piglit <branch>
+  --create-piglit-report           Create results report
 
 HELP
 }
@@ -402,7 +405,7 @@ do
 	usage
 	exit 0
 	;;
-    # Release the git modules specified in <file>
+    # Use the release docker image tagged as <tag>
     --release)
 	check_option_args $1 $2
 	shift

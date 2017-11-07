@@ -525,28 +525,31 @@ usage() {
     basename="`expr "//$0" : '.*/\([^/]*\)'`"
     cat <<HELP
 
-Usage: $basename [options] --mesa-commit <mesa-commit-id> --vk-cts-commit <vk-cts-commit-id> --gl-cts-commit <gl-cts-commit-id> --piglit-commit <piglit-commit-id>
+Usage: $basename [options] --mesa-commit <mesa-commit-id> --vk-cts-commit <vk-cts-commit-id> --gl-cts-commit <gl-cts-commit-id>
 
 Options:
-  --help                  Display this help and exit successfully
-  --dry-run               Does everything except running the tests
-  --verbosity             Which verbosity level to use [full|normal|quite]. Default, normal.
-  --no-clean              Do not clean the created images
-  --force-clean           Forces the cleaning of the working env
-  --base-path             PATH from which to create the rest of the relative paths
-  --tmp-path              PATH in which to do the temporary work
-  --mesa-path             PATH to the mesa repository
-  --vk-gl-cts-path        PATH to the vk-gl-cts repository
-  --vk-loader-path        PATH to the LoaderAndValidationLayers repository
-  --piglit-results-dir    PATH where to place the piglit results
-  --mesa-commit           mesa commit to use
-  --vk-cts-commit         VK-CTS commit to use
-  --gl-cts-commit         GL-CTS commit to use
-  --merge-base-run        merge-base run
-  --run-vk-cts            Run vk-cts
-  --run-gl-cts            Run gl-cts
-  --run-piglit            Run piglit
-  --create-piglit-report  Create results report
+  --help                           Display this help and exit successfully
+  --dry-run                        Does everything except running the tests
+  --verbosity [full|normal|quiet]  Which verbosity level to use
+                                   [full|normal|quite]. Default, normal.
+  --no-clean                       Do not clean the created images
+  --force-clean                    Forces the cleaning of the working env
+  --base-path <path>               <path> from which to create the rest of the
+                                   relative paths
+  --tmp-path <path>                <path> in which to do the temporary work
+  --mesa-path <path>               <path> to the mesa repository
+  --vk-gl-cts-path <path>          <path> to the vk-gl-cts repository
+  --vk-loader-path <path>          <path> to the LoaderAndValidationLayers
+                                   repository
+  --piglit-results-dir <path>      <path> where to place the piglit results
+  --mesa-commit <commit>           mesa <commit> to use
+  --vk-cts-commit <commit>         VK-CTS <commit> to use
+  --gl-cts-commit <commit>         GL-CTS <commit> to use
+  --merge-base-run                 merge-base run
+  --run-vk-cts                     Run vk-cts
+  --run-gl-cts                     Run gl-cts
+  --run-piglit                     Run piglit
+  --create-piglit-report           Create results report
 
 HELP
 }
