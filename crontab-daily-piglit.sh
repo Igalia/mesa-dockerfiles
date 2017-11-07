@@ -207,6 +207,28 @@ function proper_driver {
 }
 
 #------------------------------------------------------------------------------
+#			Function: unique_icd_filename
+#------------------------------------------------------------------------------
+#
+# prints an unique ICD filename based on the provided vulkan driver
+#   $1 - a vulkan driver
+function unique_icd_filename {
+    case $1 in
+    anv)
+	# Asumming a lot of things here: path and x86_64 arch. Meh ...
+	printf "/usr/local/share/vulkan/icd.d/intel_icd.x86_64.json"
+	;;
+    radv)
+	# Asumming a lot of things here: path and x86_64 arch. Meh ...
+	printf "/usr/local/share/vulkan/icd.d/radeon_icd.x86_64.json"
+	;;
+    *)
+	printf ""
+	;;
+    esac
+}
+
+#------------------------------------------------------------------------------
 #			Function: test_suites
 #------------------------------------------------------------------------------
 #
@@ -304,30 +326,41 @@ function run_piglit_tests {
 	for driver in $CDP_MESA_DRIVERS; do
 	    corrected_driver=`proper_driver "$suite" "$driver"`
 	    printf "%s\n" "" "Processing $suite test suite with driver $corrected_driver ..." "" >&9
+	    icd_filename=`unique_icd_filename "$corrected_driver"`
+	    printf "%s\n" "" "Chosen ICD file is $icd_filename ..." "" >&9
 	    if ! $CDP_DRY_RUN; then
 
 		# We restore the redirection so the output is managed
 		# by the commands inside "docker run"
 		restore_redirection
-		if [ "x$suite" = "xpiglit" ]; then
-		    docker run --privileged --rm -t -v "${CDP_PIGLIT_RESULTS_DIR}":/results:Z \
-			   -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
-			   -e FPR_EXTRA_ARGS="$CDP_EXTRA_ARGS" \
-			   -e GL_DRIVER="$corrected_driver" igalia/mesa:piglit
-		elif [ "x$suite" = "xopengl" ] || [ "x$suite" = "xvulkan" ]; then
-		    if [ "x$suite" = "xopengl" ]; then
-			CDP_CTS_EXTRA_ARGS="$CDP_EXTRA_ARGS"
-			CDP_CTS_TARGET="gl-cts"
-		    else
-			CDP_CTS_EXTRA_ARGS="--vk-cts-all-concurrent $CDP_EXTRA_ARGS"
-			CDP_CTS_TARGET="vk-cts"
-		    fi
-		    docker run --privileged --rm -t -v "${CDP_PIGLIT_RESULTS_DIR}":/results:Z \
-			   -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
-			   -e FPR_EXTRA_ARGS="$CDP_CTS_EXTRA_ARGS" \
-			   -e CTS="$suite" \
-			   -e GL_DRIVER="$corrected_driver" igalia/mesa:"${CDP_CTS_TARGET}"
-		fi
+		case "x$suite" in
+		    "xpiglit" )
+			docker run --privileged --rm -t -v "${CDP_PIGLIT_RESULTS_DIR}":/results:Z \
+			       -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
+			       -e FPR_EXTRA_ARGS="$CDP_EXTRA_ARGS" \
+			       -e GL_DRIVER="$corrected_driver" igalia/mesa:piglit
+		        ;;
+		    "xopengl" )
+			docker run --privileged --rm -t -v "${CDP_PIGLIT_RESULTS_DIR}":/results:Z \
+			       -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
+			       -e FPR_EXTRA_ARGS="$CDP_EXTRA_ARGS" \
+			       -e CTS="$suite" \
+			       -e GL_DRIVER="$corrected_driver" igalia/mesa:gl-cts
+		        ;;
+		    "xvulkan" )
+			docker run --privileged --rm -t -v "${CDP_PIGLIT_RESULTS_DIR}":/results:Z \
+			       -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
+			       -e FPR_EXTRA_ARGS="--vk-cts-all-concurrent $CDP_EXTRA_ARGS" \
+			       -e CTS="$suite" \
+			       -e VK_ICD_FILENAMES="$icd_filename" \
+			       -e GL_DRIVER="$corrected_driver" igalia/mesa:vk-cts
+		        ;;
+		    *)
+			apply_verbosity "$CDP_VERBOSITY"
+			printf "%s\n" "Error: Suite $suite is not a valid one. This should never happen!!!" >&2
+			return 7
+			;;
+		esac
 		apply_verbosity "$CDP_VERBOSITY"
 	    fi
 	done
