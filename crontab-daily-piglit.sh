@@ -9,7 +9,7 @@
 #
 # $ crontab -e
 # ...
-# 0 3 * * * bash <path_to>/mesa-dockerfiles.git/crontab-daily-piglit.sh --run-piglit --run-vk-cts --run-gl-cts --release pre-release-17.1 i965
+# 0 3 * * * bash <path_to>/mesa-dockerfiles.git/crontab-daily-piglit.sh --run-piglit test/mesa-17.2 --run-vk-cts test/vk/mesa-17.2 --run-gl-cts test/gl/mesa-17.2 --release pre-release-17.2.debug i965
 
 export LC_ALL=C
 
