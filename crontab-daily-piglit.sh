@@ -285,7 +285,7 @@ function run_piglit_tests {
 
 
     if $CDP_RUN_PIGLIT; then
-	rocker build --pull -f Rockerfile.piglit --var DEBUG=true --var TAG=piglit --var RELEASE="${CDP_RELEASE}"
+	rocker build --pull -f Rockerfile.piglit --var DEBUG=true --var FPR_BRANCH="${CDP_FPR_BRANCH}" --var TAG=piglit --var RELEASE="${CDP_RELEASE}"
 	CDP_TEST_SUITES="piglit $CDP_TEST_SUITES"
     fi
 
@@ -299,7 +299,7 @@ function run_piglit_tests {
 	git pull $CDP_PROGRESS_FLAG
 	cd -
 	cd $HOME
-	rocker build --pull -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var DEBUG=true --var TAG=gl-cts --var RELEASE="${CDP_RELEASE}"
+	rocker build --pull -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var DEBUG=true --var FPR_BRANCH="${CDP_FPR_BRANCH}" --var TAG=gl-cts --var RELEASE="${CDP_RELEASE}"
 	rm Rockerfile.vk-gl-cts
 	cd -
     fi
@@ -314,7 +314,7 @@ function run_piglit_tests {
 	git pull $CDP_PROGRESS_FLAG
 	cd -
 	cd $HOME
-	rocker build --pull -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var DEBUG=true --var TAG=vk-cts --var RELEASE="${CDP_RELEASE}"
+	rocker build --pull -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var DEBUG=true --var FPR_BRANCH="${CDP_FPR_BRANCH}" --var TAG=vk-cts --var RELEASE="${CDP_RELEASE}"
 	rm Rockerfile.vk-gl-cts
 	cd -
     fi
@@ -396,6 +396,7 @@ Options:
   --run-vk-cts <branch>            Run against the vk-cts <branch>
   --run-gl-cts <branch>            Run against the gl-cts <branch>
   --run-piglit <branch>            Run against the piglit <branch>
+  --fpr-branch <branch>            full-piglit-run.sh' <branch>
   --create-piglit-report           Create results report
 
 HELP
@@ -483,6 +484,12 @@ do
 	shift
 	CDP_PIGLIT_BRANCH=$1
 	;;
+    # full-piglit-run.sh' <branch>
+    --fpr-branch)
+	check_option_args $1 $2
+	shift
+	CDP_FPR_BRANCH=$1
+	;;
     # Create results report
     --create-piglit-report)
 	CDP_CREATE_PIGLIT_REPORT=true
@@ -521,6 +528,11 @@ CCACHE_DIR="${CCACHE_DIR:-$HOME/i965/piglit-results/docker-ccache}"
 CDP_RUN_VK_CTS="${CDP_RUN_VK_CTS:-false}"
 CDP_RUN_GL_CTS="${CDP_RUN_GL_CTS:-false}"
 CDP_RUN_PIGLIT="${CDP_RUN_PIGLIT:-false}"
+
+# Which FPR branch to use?
+# -----------------------
+
+CDP_FPR_BRANCH="${CDP_FPR_BRANCH:-master}"
 
 # Verbose?
 # --------
