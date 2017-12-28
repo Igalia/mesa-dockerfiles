@@ -444,39 +444,39 @@ do
 	shift
 	CDP_RELEASE=$1
 	;;
-    # PATH to the mesa-dockerfiles.git repository
+    # <path> to the mesa-dockerfiles.git repository
     --mesa-dockerfiles-dir)
 	check_option_args $1 $2
 	shift
 	CDP_MESA_DOCKERFILES_DIR=$1
 	;;
-    # PATH where to place the piglit results
+    # <path> where to place the piglit results
     --piglit-results-dir)
 	check_option_args $1 $2
 	shift
 	CDP_PIGLIT_RESULTS_DIR=$1
 	;;
-    # PATH where for ccache's directory
+    # <path> where for ccache's directory
     --docker-ccache-dir)
 	check_option_args $1 $2
 	shift
 	CCACHE_DIR=$1
 	;;
-    # Run vk-cts
+    # Run against the vk-cts <branch>
     --run-vk-cts)
 	CDP_RUN_VK_CTS=true
 	check_option_args $1 $2
 	shift
 	CDP_VK_CTS_BRANCH=$1
 	;;
-    # Run gl-cts
+    # Run against the gl-cts <branch>
     --run-gl-cts)
 	CDP_RUN_GL_CTS=true
 	check_option_args $1 $2
 	shift
 	CDP_GL_CTS_BRANCH=$1
 	;;
-    # Run piglit
+    # Run against the piglit <branch>
     --run-piglit)
 	CDP_RUN_PIGLIT=true
 	check_option_args $1 $2
