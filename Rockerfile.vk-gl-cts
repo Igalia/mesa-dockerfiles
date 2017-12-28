@@ -6,8 +6,9 @@
 # ~~~
 #  rocker build -f Rockerfile.vk-gl-cts                                 \
 #    --var VIDEO_GID=`getent group video | cut -f3 -d:`                 \
-#    [--var TAG=vk-gl-cts]   # vk-gl-cts-17.0, vk-gl-cts-13.0, ...      \
-#    --var RELEASE=master    # master, pre-release-17.0, pre-release-13.0, ...
+#    [--var FPR_BRANCH=master]  # master, test/mesa-17.3, ...           \
+#    [--var TAG=vk-gl-cts]      # vk-gl-cts-17.0, vk-gl-cts-13.0, ...   \
+#    --var RELEASE=master       # master, pre-release-17.0, pre-release-13.0, ...
 # ~~~
 #
 # Environment variables that are used in the build:
@@ -31,6 +32,7 @@
 # GL_DRIVER = [ i965, nouveau, nvidia, radeon, amd, llvmpipe, swr, softpipe, anv, radv ]
 #
 
+{{ $fpr := (or .FPR_BRANCH "master") }}
 {{ $image := (or .Env.DOCKER_IMAGE "igalia/mesa") }}
 {{ $ccachedir := (or .Env.CCACHE_DIR "~/.ccache") }}
 
@@ -63,11 +65,11 @@ ENV PATH=/usr/lib/ccache:$PATH
 
 WORKDIR /home/local
 
-RUN wget -c https://raw.githubusercontent.com/tanty/mesa-resources/master/testing/full-piglit-run.sh
+RUN wget -c https://raw.githubusercontent.com/tanty/mesa-resources/{{ $fpr }}/testing/full-piglit-run.sh
 
 RUN chmod +x full-piglit-run.sh
 
-RUN wget -c https://raw.githubusercontent.com/tanty/mesa-resources/master/testing/f-p-r-patterns.txt
+RUN wget -c https://raw.githubusercontent.com/tanty/mesa-resources/{{ $fpr }}/testing/f-p-r-patterns.txt
 
 RUN git clone --depth 1 http://github.com/Igalia/piglit.git -b wip/agomez/dcbaker-deqp-group-at-a-time-_-khr-gl45 /home/local/igalia-piglit
 
