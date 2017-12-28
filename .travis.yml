@@ -30,7 +30,7 @@ script:
 jobs:
   include:
     - stage: Validate
-      install: npm install -g dockerlint
+      install: npm install -g dockerlint@0.3.1
       script:
         - ./rocker build -f Rockerfile.base --print > Dockerfile
         - dockerlint Dockerfile
