@@ -221,8 +221,21 @@ function build_mesa() {
     wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.mesa
     # make check is failing right now and we don't really need it
     sed -e 's/&& make check//g' -i Rockerfile.mesa
+
+    __CDLP_OLD_DOCKER_IMAGE="$DOCKER_IMAGE"
+    DOCKER_IMAGE="igalia/mesa"
+
     rocker build --pull -f Rockerfile.mesa --var BUILD="autotools" --var LLVM="4.0" --var DEBUG=true --var TAG=mesa."$CDLP_MESA_COMMIT"
     popd
+
+    if [ ! -z "$CDLP_DOCKER_REPOSITORY" ]; then
+	docker tag "$DOCKER_IMAGE":mesa."$CDLP_MESA_COMMIT" "$CDLP_DOCKER_REPOSITORY":mesa."$CDLP_MESA_COMMIT"
+	docker rmi "$DOCKER_IMAGE":mesa."$CDLP_MESA_COMMIT"
+	docker push "$CDLP_DOCKER_REPOSITORY":mesa."$CDLP_MESA_COMMIT"
+    fi
+
+    DOCKER_IMAGE="$__CDLP_OLD_DOCKER_IMAGE"
+    unset __CDLP_OLD_DOCKER_IMAGE
 
     return 0
 }
@@ -238,7 +251,7 @@ function build_mesa() {
 function clean_mesa() {
     rm -rf "$CDLP_TEMP_PATH/mesa"
     if $CDLP_CLEAN; then
-	docker rmi igalia/mesa:mesa."$CDLP_MESA_COMMIT"
+	docker rmi "$DOCKER_IMAGE":mesa."$CDLP_MESA_COMMIT"
     fi
 
     return 0
@@ -284,8 +297,12 @@ function build_vk_gl_cts() {
     popd
     pushd "$CDLP_TEMP_PATH"
     wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.vk-gl-cts
-    rocker build -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var FPR_BRANCH="$CDLP_FPR_BRANCH" --var TAG=vk-gl-cts."$1" --var RELEASE=mesa."$CDLP_MESA_COMMIT"${CDLP_GL_CTS_GTF:+ --var GTF=}"$CDLP_GL_CTS_GTF"
+    DOCKER_IMAGE="$DOCKER_IMAGE" rocker build -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var FPR_BRANCH="$CDLP_FPR_BRANCH" --var TAG=vk-gl-cts."$1" --var RELEASE=mesa."$CDLP_MESA_COMMIT"${CDLP_GL_CTS_GTF:+ --var GTF=}"$CDLP_GL_CTS_GTF"
     popd
+
+    if [ ! -z "$CDLP_DOCKER_REPOSITORY" ]; then
+	docker push "$DOCKER_IMAGE":vk-gl-cts."$1"
+    fi
 
     mv "$CDLP_TEMP_PATH/LoaderAndValidationLayers" "$CDLP_TEMP_PATH/LoaderAndValidationLayers.$1"
     mv "$CDLP_TEMP_PATH/vk-gl-cts" "$CDLP_TEMP_PATH/vk-gl-cts.$1"
@@ -308,7 +325,7 @@ function clean_vk_gl_cts() {
     rm -rf "$CDLP_TEMP_PATH/vk-gl-cts.$1"
     rm -f "$CDLP_TEMP_PATH/Rockerfile.vk-gl-cts.$1"
     if $CDLP_CLEAN; then
-	docker rmi igalia/mesa:vk-gl-cts."$1"
+	docker rmi "$DOCKER_IMAGE":vk-gl-cts."$1"
     fi
 
     return 0
@@ -327,8 +344,12 @@ function build_piglit() {
     mkdir -p "$CDLP_TEMP_PATH/piglit"
     pushd "$CDLP_TEMP_PATH/piglit"
     wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.piglit
-    rocker build -f Rockerfile.piglit --var FPR_BRANCH="$CDLP_FPR_BRANCH" --var TAG=piglit --var RELEASE=mesa."$CDLP_MESA_COMMIT"
+    DOCKER_IMAGE="$DOCKER_IMAGE" rocker build -f Rockerfile.piglit --var FPR_BRANCH="$CDLP_FPR_BRANCH" --var TAG=piglit --var RELEASE=mesa."$CDLP_MESA_COMMIT"
     popd
+
+    if [ ! -z "$CDLP_DOCKER_REPOSITORY" ]; then
+	docker push "${DOCKER_IMAGE}":piglit
+    fi
 
     return 0
 }
@@ -344,7 +365,7 @@ function build_piglit() {
 function clean_piglit() {
     rm -rf "$CDLP_TEMP_PATH/piglit"
     if $CDLP_CLEAN; then
-	docker rmi igalia/mesa:piglit
+	docker rmi "$DOCKER_IMAGE":piglit
     fi
 
     return 0
@@ -447,7 +468,7 @@ function run_tests {
 	    docker run --privileged --rm -t -v "${CDLP_PIGLIT_RESULTS_DIR}":/results:Z \
 		   -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
 		   -e FPR_EXTRA_ARGS="$CDLP_EXTRA_ARGS" \
-		   -e GL_DRIVER="i965" igalia/mesa:piglit
+		   -e GL_DRIVER="i965" "$DOCKER_IMAGE":piglit
 
 	    apply_verbosity "$CDLP_VERBOSITY"
 
@@ -473,7 +494,7 @@ function run_tests {
 		   -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
 		   -e FPR_EXTRA_ARGS="$CDLP_EXTRA_ARGS" \
 		   -e CTS="opengl" \
-		   -e GL_DRIVER="i965" igalia/mesa:vk-gl-cts."$CDLP_GL_CTS_BRANCH"
+		   -e GL_DRIVER="i965" "$DOCKER_IMAGE":vk-gl-cts."$CDLP_GL_CTS_BRANCH"
 
 	    apply_verbosity "$CDLP_VERBOSITY"
 
@@ -499,7 +520,7 @@ function run_tests {
 		   -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
 		   -e FPR_EXTRA_ARGS="--vk-cts-all-concurrent $CDLP_EXTRA_ARGS" \
 		   -e CTS="vulkan" \
-		   -e GL_DRIVER="anv" igalia/mesa:vk-gl-cts."$CDLP_VK_CTS_BRANCH"
+		   -e GL_DRIVER="anv" "$DOCKER_IMAGE":vk-gl-cts."$CDLP_VK_CTS_BRANCH"
 
 	    apply_verbosity "$CDLP_VERBOSITY"
 
@@ -549,6 +570,7 @@ Options:
   --vk-cts-commit <commit>         VK-CTS <commit> to use
   --gl-cts-commit <commit>         GL-CTS <commit> to use
   --gl-cts-gtf <gtf-target>        GL-CTS <gtf-target> to use
+  --docker-repository <repository> Docker <repository> to push to
   --merge-base-run                 merge-base run
   --run-vk-cts                     Run vk-cts
   --run-gl-cts                     Run gl-cts
@@ -662,6 +684,12 @@ do
 	shift
 	CDLP_GL_CTS_GTF=$1
 	;;
+    # Docker repository to push to
+    --docker-repository)
+	check_option_args $1 $2
+	shift
+	CDLP_DOCKER_REPOSITORY=$1
+	;;
     # merge-base run
     --merge-base-run)
 	CDLP_MERGE_BASE_RUN=true
@@ -733,6 +761,12 @@ CDLP_MERGE_BASE_RUN="${CDLP_MERGE_BASE_RUN:-false}"
 CDLP_RUN_VK_CTS="${CDLP_RUN_VK_CTS:-false}"
 CDLP_RUN_GL_CTS="${CDLP_RUN_GL_CTS:-false}"
 CDLP_RUN_PIGLIT="${CDLP_RUN_PIGLIT:-false}"
+
+
+# Docker settings
+# ---------------
+
+DOCKER_IMAGE="${CDLP_DOCKER_REPOSITORY:-igalia/mesa}"
 
 
 # Cleaning?
