@@ -8,6 +8,7 @@
 #    --var VIDEO_GID=`getent group video | cut -f3 -d:`                 \
 #    [--var FPR_BRANCH=master]  # master, test/mesa-17.3, ...           \
 #    [--var TAG=vk-gl-cts]      # vk-gl-cts-17.0, vk-gl-cts-13.0, ...   \
+#    [--var GTF=gles32]         # gl, gles32, gles31, gles3, gles2      \
 #    --var RELEASE=master       # master, pre-release-17.0, pre-release-13.0, ...
 # ~~~
 #
@@ -92,9 +93,9 @@ RUN ../update_external_sources.sh                      \
 
 WORKDIR /home/local/vk-gl-cts/build
 
-RUN python2 ../external/fetch_sources.py                  \
-  && cmake .. -DDEQP_TARGET=x11_egl                       \
-  && find . -name link.txt -exec sed -i "s/;-/ -/g" {} \; \
+RUN python2 ../external/fetch_sources.py                                                  \
+  && cmake .. -DDEQP_TARGET=x11_egl {{ if .GTF }} -DGLCTS_GTF_TARGET={{ .GTF }} {{ end }} \
+  && find . -name link.txt -exec sed -i "s/;-/ -/g" {} \;                                 \
   && cmake --build .
 
 RUN git show --stat > /home/local/vk-gl-cts-head.txt
