@@ -221,7 +221,7 @@ function build_mesa() {
     wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.mesa
     # make check is failing right now and we don't really need it
     sed -e 's/&& make check//g' -i Rockerfile.mesa
-    rocker build --pull -f Rockerfile.mesa --var BUILD="autotools" --var LLVM="3.9" --var DEBUG=true --var TAG=mesa."$CDLP_MESA_COMMIT"
+    rocker build --pull -f Rockerfile.mesa --var BUILD="autotools" --var LLVM="4.0" --var DEBUG=true --var TAG=mesa."$CDLP_MESA_COMMIT"
     popd
 
     return 0
@@ -278,10 +278,13 @@ function build_vk_gl_cts() {
     git branch -m old
     git checkout $CDLP_PROGRESS_FLAG -b working "$1"
     git branch -D old
+    if [ ! -z "$CDLP_GL_CTS_GTF" ]; then
+	python ./external/fetch_kc_cts.py --protocol ssh
+    fi
     popd
     pushd "$CDLP_TEMP_PATH"
     wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.vk-gl-cts
-    rocker build -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var FPR_BRANCH="${CDLP_FPR_BRANCH}" --var TAG=vk-gl-cts."$1" --var RELEASE=mesa."$CDLP_MESA_COMMIT"
+    rocker build -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var FPR_BRANCH="$CDLP_FPR_BRANCH" --var TAG=vk-gl-cts."$1" --var RELEASE=mesa."$CDLP_MESA_COMMIT"${CDLP_GL_CTS_GTF:+ --var GTF=}"$CDLP_GL_CTS_GTF"
     popd
 
     mv "$CDLP_TEMP_PATH/LoaderAndValidationLayers" "$CDLP_TEMP_PATH/LoaderAndValidationLayers.$1"
@@ -324,7 +327,7 @@ function build_piglit() {
     mkdir -p "$CDLP_TEMP_PATH/piglit"
     pushd "$CDLP_TEMP_PATH/piglit"
     wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.piglit
-    rocker build -f Rockerfile.piglit --var FPR_BRANCH="${CDLP_FPR_BRANCH}" --var TAG=piglit --var RELEASE=mesa."$CDLP_MESA_COMMIT"
+    rocker build -f Rockerfile.piglit --var FPR_BRANCH="$CDLP_FPR_BRANCH" --var TAG=piglit --var RELEASE=mesa."$CDLP_MESA_COMMIT"
     popd
 
     return 0
@@ -545,6 +548,7 @@ Options:
   --mesa-commit <commit>           mesa <commit> to use
   --vk-cts-commit <commit>         VK-CTS <commit> to use
   --gl-cts-commit <commit>         GL-CTS <commit> to use
+  --gl-cts-gtf <gtf-target>        GL-CTS <gtf-target> to use
   --merge-base-run                 merge-base run
   --run-vk-cts                     Run vk-cts
   --run-gl-cts                     Run gl-cts
@@ -651,6 +655,12 @@ do
 	check_option_args $1 $2
 	shift
 	CDLP_GL_CTS_BRANCH=$1
+	;;
+    # GL-CTS GTF target to use
+    --gl-cts-gtf)
+	check_option_args $1 $2
+	shift
+	CDLP_GL_CTS_GTF=$1
 	;;
     # merge-base run
     --merge-base-run)
