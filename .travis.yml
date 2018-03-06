@@ -46,6 +46,8 @@ jobs:
         - dockerlint Dockerfile
         - ./rocker build -f Rockerfile.vk-gl-cts --var RELEASE=master --var VIDEO_GID=1000 --print > Dockerfile
         - dockerlint Dockerfile
+        - ./rocker build -f Rockerfile.cts --var RELEASE=master --print > Dockerfile
+        - dockerlint Dockerfile
       after_success: skip
 
     - stage: Build Base
