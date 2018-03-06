@@ -225,7 +225,7 @@ function build_mesa() {
     __CDLP_OLD_DOCKER_IMAGE="$DOCKER_IMAGE"
     DOCKER_IMAGE="igalia/mesa"
 
-    rocker build --pull -f Rockerfile.mesa --var BUILD="autotools" --var LLVM="4.0" --var CLEAN=false --var DEBUG=true --var TAG=mesa."$CDLP_MESA_COMMIT"
+    rocker build --pull -f Rockerfile.mesa --var BUILD="autotools" --var LLVM="4.0" --var CLEAN=false --var DEBUG=false --var TAG=mesa."$CDLP_MESA_COMMIT"
     popd
 
     if [ ! -z "$CDLP_DOCKER_REPOSITORY" ]; then
@@ -297,7 +297,7 @@ function build_vk_gl_cts() {
     popd
     pushd "$CDLP_TEMP_PATH"
     wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.vk-gl-cts
-    DOCKER_IMAGE="$DOCKER_IMAGE" rocker build -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var FPR_BRANCH="$CDLP_FPR_BRANCH" ${CDLP_GL_CTS_GTF:+--var GTF=}"$CDLP_GL_CTS_GTF" --var TAG=vk-gl-cts."$1" --var RELEASE=mesa."$CDLP_MESA_COMMIT"
+    DOCKER_IMAGE="$DOCKER_IMAGE" rocker build -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var FPR_BRANCH="$CDLP_FPR_BRANCH" ${CDLP_GL_CTS_GTF:+--var GTF=}"$CDLP_GL_CTS_GTF" --var DEBUG=false --var TAG=vk-gl-cts."$1" --var RELEASE=mesa."$CDLP_MESA_COMMIT"
     popd
 
     if [ ! -z "$CDLP_DOCKER_REPOSITORY" ]; then
