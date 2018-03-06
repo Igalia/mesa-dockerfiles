@@ -5,6 +5,7 @@
 #  rocker build -f Rockerfile.mesa [--attach]                                                   \
 #    --var BUILD=autotools      # meson, scons, autotools, windows, distcheck, gallium, android \
 #    [--var DEBUG=true]         # true, false                                                   \
+#    [--var CLEAN=false]        # true, false                                                   \
 #    [--var TAR=false]          # true, false                                                   \
 #    [--var LLVM=3.3]           # 3.3, 3.6, 3.8, 3.9, 4.0 or 5.0                                \
 #    [--var TAG=master]         # master, pre-release-17.0, pre-release-13.0, ...               \
@@ -21,6 +22,7 @@
 {{ $ccachedir := (or .Env.CCACHE_DIR "~/.ccache") }}
 {{ $llvm_version := (or .LLVM "0.0") }}
 {{ $debug_build := (or .DEBUG "true") }}
+{{ $clean := (or .CLEAN "true") }}
 {{ $tar_build := (or .TAR "false") }}
 
 {{ if eq $tar_build "true" }}
@@ -154,25 +156,21 @@ RUN [ "/bin/bash", "-c", "source build/envsetup.sh && lunch linaro_arm64-userdeb
 {{ else if eq .BUILD "scons" }}
 {{ if eq $llvm_version "0.0" }}
 RUN scons llvm=0               \
-  && scons llvm=0 check        \
-  && sudo rm -fr /home/local/mesa
+  && scons llvm=0 check
 {{ else }}
 RUN scons llvm=1               \
-  && scons llvm=1 check        \
-  && sudo rm -fr /home/local/mesa
+  && scons llvm=1 check
 {{ end }}
 
 {{ else if eq .BUILD "windows" }}
-RUN scons platform=windows toolchain=crossmingw \
-  && sudo rm -fr /home/local/mesa
+RUN scons platform=windows toolchain=crossmingw
 
 {{ else if eq .BUILD "distcheck" }}
 RUN ./autogen.sh                            \
   && make distcheck                         \
   && __version=`cat VERSION`                \
   && mv VERSION /home/local/                \
-  && mv mesa-$__version.tar.xz /home/local/ \
-  && sudo rm -fr /home/local/mesa
+  && mv mesa-$__version.tar.xz /home/local/
 {{ else if eq .BUILD "gallium" }}
 RUN export LLVM={{ $llvm_version }}.0\
   && eval `cat configure.ac | egrep ^LLVM_REQUIRED`                                                                                                       \
@@ -186,15 +184,13 @@ RUN export LLVM={{ $llvm_version }}.0\
     {{ if ne $debug_build "false" }} --enable-debug {{ end }}                                                                                             \
     --disable-glx --disable-gbm --disable-egl                                                                                                             \
   && make                                                                                                                                                 \
-  && make check                                                                                                                                           \
-  && sudo rm -fr /home/local/mesa
+  && make check
 {{ else if eq .BUILD "meson" }}
 RUN meson -Dbuild-tests=true _build                                                                                                                       \
   && ninja -C _build                                                                                                                                      \
   && ninja -C _build test                                                                                                                                 \
   && sudo ninja -C _build install                                                                                                                         \
-  && sudo ldconfig                                                                                                                                        \
-  && sudo rm -fr /home/local/mesa
+  && sudo ldconfig
 {{ else }}
 RUN export LLVM={{ $llvm_version }}.0\
   && eval `cat configure.ac | egrep ^LLVM_REQUIRED`                                                                                                       \
@@ -214,8 +210,11 @@ RUN export LLVM={{ $llvm_version }}.0\
   && make                                                                                                                                                 \
   && make check                                                                                                                                           \
   && sudo make install                                                                                                                                    \
-  && sudo ldconfig                                                                                                                                        \
-  && sudo rm -fr /home/local/mesa
+  && sudo ldconfig
+{{ end }}
+
+{{ if eq $clean "true" }}
+RUN test -d /home/local/mesa && sudo rm -fr /home/local/mesa
 {{ end }}
 
 {{ if eq $tar_build "true" }}
