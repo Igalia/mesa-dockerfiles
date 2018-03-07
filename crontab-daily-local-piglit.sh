@@ -7,7 +7,7 @@
 #
 # $ crontab -e
 # ...
-# 0 3 * * * <path_to>/f-p-r-cronjob.sh --mesa-commit "mesa-remote/mesa-branch" --vk-gl-cts-commit "vk-gl-cts-remote/vk-gl-cts-branch"
+# 0 3 * * * <path_to>/f-p-r-cronjob.sh --mesa-commit "mesa-remote/mesa-branch" --vk-cts-commit "vk-gl-cts-remote/vk-cts-branch" --gl-cts-commit "vk-gl-cts-remote/gl-cts-branch"
 
 export LC_ALL=C
 
@@ -133,7 +133,7 @@ function check_option_args() {
 # returns:
 #   0 is success, an error code otherwise
 function sanity_check() {
-    if [ "x$1" == "x" ] || [ "x$2" == "x" ]; then
+    if [ "x$1" == "x" ] || [ "x$2" == "x" ] || [ "x$3" == "x" ]; then
 	printf "Error: Missing parameters.\n" >&2
 	usage
 	return 2
