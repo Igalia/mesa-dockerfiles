@@ -1,0 +1,93 @@
+#
+# This builds AOSP dEQP
+#
+# ~~~
+#  rocker build -f Rockerfile.deqp                                    \
+#    --var VIDEO_GID=`getent group video | cut -f3 -d:`               \
+#    [--var DEBUG=true]         # true, false                         \
+#    [--var FPR_BRANCH=master]  # master, test/mesa-17.3, ...         \
+#    [--var TAG=aosp-deqp]      # aosp-deqp-17.0, aosp-deqp-13.0, ... \
+#    --var RELEASE=master       # master, pre-release-17.0, pre-release-13.0, ...
+# ~~~
+#
+# Environment variables that are used in the build:
+#  - DOCKER_IMAGE: name of the final image to be tagged (default: igalia/mesa)
+#  - MAKEFLAGS: flags to pass to make (e.g., "-j8")
+#  - CCACHE_DIR: ccache directory (default: ~/.ccache)
+#
+# To run
+#
+# ~~~
+#   mkdir -p -m777 ~/my_results_dir
+#   docker run --privileged --rm -t -v ~/my_results_dir:/results:Z  \
+#              -v /tmp/.X11-unix:/tmp/.X11-unix \
+#              -e DISPLAY=unix$DISPLAY \
+#              -e FPR_EXTRA_ARGS="--verbosity full" \
+#              -e CTS=vulkan \
+#              -e GL_DRIVER=i965 igalia/mesa:aosp-deqp
+# ~~~
+#
+# GL_DRIVER = [ i965, nouveau, nvidia, radeon, amd, llvmpipe, swr, softpipe ]
+#
+
+{{ $fpr := (or .FPR_BRANCH "master") }}
+{{ $image := (or .Env.DOCKER_IMAGE "igalia/mesa") }}
+{{ $ccachedir := (or .Env.CCACHE_DIR "~/.ccache") }}
+{{ $debug_build := (or .DEBUG "true") }}
+
+FROM {{ $image }}:{{ .RELEASE }}
+
+LABEL maintainer "Andres Gomez <agomez@igalia.com>"
+
+RUN apt-get update                                                  \
+  && apt-get -y --no-install-recommends install cmake libxrandr-dev \
+    python3-setuptools python3-pip                                  \
+  && rm -fr /var/lib/apt/lists/*
+
+RUN pip3 install six mako
+
+# {{ .VIDEO_GID }} is the gid for outside's video group. Required to access to
+# /dev/dri/renderD128
+RUN usermod -G {{ .VIDEO_GID }} -a local
+
+USER local
+
+{{ if .Env.MAKEFLAGS }}
+ENV MAKEFLAGS={{ .Env.MAKEFLAGS }}
+{{ end }}
+
+MOUNT {{ $ccachedir }}:/home/local/.ccache:Z
+
+RUN sudo chown -R local:local /home/local/.ccache
+
+ENV PATH=/usr/lib/ccache:$PATH
+
+WORKDIR /home/local
+
+RUN wget -c https://raw.githubusercontent.com/tanty/mesa-resources/{{ $fpr }}/testing/full-piglit-run.sh
+
+RUN chmod +x full-piglit-run.sh
+
+RUN wget -c https://raw.githubusercontent.com/tanty/mesa-resources/{{ $fpr }}/testing/f-p-r-patterns.txt
+
+ADD aosp-deqp /home/local/aosp-deqp
+
+RUN sudo chown -R local:local /home/local/aosp-deqp
+
+RUN mkdir /home/local/aosp-deqp/build
+
+WORKDIR /home/local/aosp-deqp/build
+
+RUN python2 ../external/fetch_sources.py                                           \
+  && cmake .. {{ if ne $debug_build "true" }} -DCMAKE_BUILD_TYPE=Release {{ end }} \
+  && cmake --build .
+
+RUN git show --stat > /home/local/aosp-deqp-head.txt
+
+VOLUME /results
+
+CMD "/bin/sh" "-c" "cp /home/local/*head.txt /results && export MESA_COMMIT=\$(grep commit /home/local/mesa-head.txt | cut -d \" \" -f 2) && /home/local/full-piglit-run.sh \$FPR_EXTRA_ARGS --deqp-gles2-prefix AOSP-DEQP2 --deqp-gles3-prefix AOSP-DEQP3 --deqp-gles31-prefix AOSP-DEQP31 --run-deqp-gles2-cts --run-deqp-gles3-cts --run-deqp-gles31-cts --base-path /home/local --piglit-path /home/local/igalia-piglit --deqp-path /home/local/aosp-deqp/build --piglit-results-path /results --driver \$GL_DRIVER --commit \$MESA_COMMIT"
+
+{{ if .TAG }}
+TAG {{ $image }}:{{ .TAG }}
+{{ end }}
