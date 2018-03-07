@@ -7,7 +7,7 @@
 #
 # $ crontab -e
 # ...
-# 0 3 * * * <path_to>/f-p-r-cronjob.sh --mesa-commit "mesa-remote/mesa-branch" --vk-cts-commit "vk-gl-cts-remote/vk-cts-branch" --gl-cts-commit "vk-gl-cts-remote/gl-cts-branch"
+# 0 3 * * * <path_to>/f-p-r-cronjob.sh --mesa-commit "mesa-remote/mesa-branch" --vk-cts-commit "vk-gl-cts-remote/vk-cts-branch" --gl-cts-commit "vk-gl-cts-remote/gl-cts-branch" --aosp-deqp-commit "aosp-deqp-remote/aosp-deqp-branch"
 
 export LC_ALL=C
 
@@ -130,10 +130,11 @@ function check_option_args() {
 #   $1 - an existing mesa's commit id
 #   $2 - an existing VK-CTS' commit id
 #   $3 - an existing GL-CTS' commit id
+#   $4 - an existing AOSP dEQP's commit id
 # returns:
 #   0 is success, an error code otherwise
 function sanity_check() {
-    if [ "x$1" == "x" ] || [ "x$2" == "x" ] || [ "x$3" == "x" ]; then
+    if [ "x$1" == "x" ] || [ "x$2" == "x" ] || [ "x$3" == "x" ] || [ "x$4" == "x" ]; then
 	printf "Error: Missing parameters.\n" >&2
 	usage
 	return 2
@@ -168,6 +169,17 @@ function sanity_check() {
 	printf "%s\n" "" "Error: GL-CTS' commit id doesn't exist in the repository." "" >&2
 	usage
 	return 5
+    fi
+
+    pushd "$CDLP_AOSP_DEQP_PATH"
+    git fetch $CDLP_PROGRESS_FLAG origin
+    CDLP_AOSP_DEQP_BRANCH=$(git show -s --pretty=format:%h "$4")
+    CDLP_RESULT=$?
+    popd
+    if [ $CDLP_RESULT -ne 0 ]; then
+	printf "%s\n" "" "Error: AOSP dEQP's commit id doesn't exist in the repository." "" >&2
+	usage
+	return 6
     fi
 
     return 0
@@ -340,6 +352,7 @@ function clean_vk_gl_cts() {
 # returns:
 #   0 is success, an error code otherwise
 function build_piglit() {
+
     rm -rf "$CDLP_TEMP_PATH/piglit"
     mkdir -p "$CDLP_TEMP_PATH/piglit"
     pushd "$CDLP_TEMP_PATH/piglit"
@@ -366,6 +379,58 @@ function clean_piglit() {
     rm -rf "$CDLP_TEMP_PATH/piglit"
     if $CDLP_CLEAN; then
 	docker rmi "$DOCKER_IMAGE":piglit
+    fi
+
+    return 0
+}
+
+
+#------------------------------------------------------------------------------
+#			Function: build_aosp_deqp
+#------------------------------------------------------------------------------
+#
+# builds a specific commit of AOSP dEQP
+#   $1 - AOSP dEQP commit to use
+# returns:
+#   0 is success, an error code otherwise
+function build_aosp_deqp() {
+    rm -rf "$CDLP_TEMP_PATH/aosp-deqp"
+    git clone $CDLP_PROGRESS_FLAG "$CDLP_AOSP_DEQP_PATH" "$CDLP_TEMP_PATH/aosp-deqp"
+    pushd "$CDLP_AOSP_DEQP_PATH"
+    CDLP_ORIGIN_URL=$(git remote get-url origin)
+    popd
+    pushd "$CDLP_TEMP_PATH/aosp-deqp"
+    git remote set-url origin "$CDLP_ORIGIN_URL"
+    git fetch $CDLP_PROGRESS_FLAG origin
+    git branch -m old
+    git checkout $CDLP_PROGRESS_FLAG -b working "$1"
+    git branch -D old
+    popd
+    pushd "$CDLP_TEMP_PATH"
+    wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.deqp
+    DOCKER_IMAGE="$DOCKER_IMAGE" rocker build -f Rockerfile.deqp --var VIDEO_GID=`getent group video | cut -f3 -d:` --var FPR_BRANCH="$CDLP_FPR_BRANCH" --var DEBUG="$CDLP_DEBUG" --var TAG=aosp-deqp."$1" --var RELEASE=mesa."$CDLP_MESA_COMMIT"
+    popd
+
+    if [ ! -z "$CDLP_DOCKER_REPOSITORY" ]; then
+	docker push "${DOCKER_IMAGE}":aosp-deqp."$1"
+    fi
+
+    return 0
+}
+
+
+#------------------------------------------------------------------------------
+#			Function: clean_aosp_deqp
+#------------------------------------------------------------------------------
+#
+# cleans the used AOSP dEQP's worktree
+#   $1 - AOSP dEQP commit to use
+# returns:
+#   0 is success, an error code otherwise
+function clean_aosp_deqp() {
+    rm -rf "$CDLP_TEMP_PATH/aosp-deqp"
+    if $CDLP_CLEAN; then
+	docker rmi "$DOCKER_IMAGE":aosp-deqp."$1"
     fi
 
     return 0
@@ -424,6 +489,27 @@ function create_vk_cts_reference() {
     fi
 
     ln -sfr $(ls -d $CDLP_PIGLIT_RESULTS_DIR/results/VK-CTS-"$1"* | tail -1) -T $CDLP_PIGLIT_RESULTS_DIR/reference/VK-CTS-"$1"
+
+    return 0
+}
+
+
+#------------------------------------------------------------------------------
+#			Function: create_aosp_deqp_reference
+#------------------------------------------------------------------------------
+#
+# creates the soft link to the AOSP dEQP reference run
+#   $1 - the driver for which to create the reference
+# returns:
+#   0 is success, an error code otherwise
+function create_aosp_deqp_reference() {
+    if [ "x$1" == "x" ]; then
+	return -1
+    fi
+
+    ln -sfr $(ls -d $CDLP_PIGLIT_RESULTS_DIR/results/AOSP-DEQP2-"$1"* | tail -1) -T $CDLP_PIGLIT_RESULTS_DIR/reference/AOSP-DEQP2-"$1"
+    ln -sfr $(ls -d $CDLP_PIGLIT_RESULTS_DIR/results/AOSP-DEQP3-"$1"* | tail -1) -T $CDLP_PIGLIT_RESULTS_DIR/reference/AOSP-DEQP3-"$1"
+    ln -sfr $(ls -d $CDLP_PIGLIT_RESULTS_DIR/results/AOSP-DEQP31-"$1"* | tail -1) -T $CDLP_PIGLIT_RESULTS_DIR/reference/AOSP-DEQP31-"$1"
 
     return 0
 }
@@ -531,6 +617,31 @@ function run_tests {
 	clean_vk_gl_cts	"$CDLP_VK_CTS_BRANCH"
     fi
 
+    if $CDLP_RUN_AOSP_DEQP; then
+	build_aosp_deqp "$CDLP_AOSP_DEQP_BRANCH"
+
+	if ! $CDLP_DRY_RUN; then
+
+	    printf "%s\n" "" "Checking AOSP dEQP progress ..." "" >&9
+
+	    # We restore the redirection so the output is managed by
+	    # the commands inside "docker run"
+	    restore_redirection
+
+	    docker run --privileged --rm -t -v "${CDLP_PIGLIT_RESULTS_DIR}":/results:Z \
+		   -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
+		   -e FPR_EXTRA_ARGS="$CDLP_EXTRA_ARGS" \
+		   -e GL_DRIVER="i965" "$DOCKER_IMAGE":vk-gl-cts."$CDLP_AOSP_DEQP_BRANCH"
+
+	    apply_verbosity "$CDLP_VERBOSITY"
+
+	    $CDLP_MERGE_BASE_RUN && create_aosp_deqp_reference "i965"
+
+	fi
+
+	clean_aosp_deqp "$CDLP_AOSP_DEQP_BRANCH"
+    fi
+
     clean_mesa
 
     popd
@@ -566,16 +677,19 @@ Options:
   --vk-gl-cts-path <path>          <path> to the vk-gl-cts repository
   --vk-loader-path <path>          <path> to the LoaderAndValidationLayers
                                    repository
+  --aosp-deqp-path                 <path> to the AOSP dEQP repository
   --piglit-results-dir <path>      <path> where to place the piglit results
   --mesa-commit <commit>           mesa <commit> to use
   --vk-cts-commit <commit>         VK-CTS <commit> to use
   --gl-cts-commit <commit>         GL-CTS <commit> to use
+  --aosp-deqp-commit <commit>      AOSP dEQP <commit> to use
   --gl-cts-gtf <gtf-target>        GL-CTS <gtf-target> to use
   --docker-repository <repository> Docker <repository> to push to
   --merge-base-run                 merge-base run
   --run-vk-cts                     Run vk-cts
   --run-gl-cts                     Run gl-cts
   --run-piglit                     Run piglit
+  --run-aosp-deqp                  Run AOSP dEQP
   --fpr-branch <branch>            full-piglit-run.sh' <branch>
   --create-piglit-report           Create results report
 
@@ -658,6 +772,11 @@ do
 	check_option_args $1 $2
 	shift
 	CDLP_VK_LOADER_PATH=$1
+    # PATH to the AOSP dEQP repository
+    --aosp-deqp-path)
+	check_option_args $1 $2
+	shift
+	CDLP_AOSP_DEQP_PATH=$1
 	;;
     # PATH where to place the piglit results
     --piglit-results-dir)
@@ -682,6 +801,12 @@ do
 	check_option_args $1 $2
 	shift
 	CDLP_GL_CTS_BRANCH=$1
+	;;
+    # AOSP dEQP commit to use
+    --aosp-deqp-commit)
+	check_option_args $1 $2
+	shift
+	CDLP_AOSP_DEQP_BRANCH=$1
 	;;
     # GL-CTS GTF target to use
     --gl-cts-gtf)
@@ -710,6 +835,10 @@ do
     # Run piglit
     --run-piglit)
 	CDLP_RUN_PIGLIT=true
+	;;
+    # Run AOSP dEQP
+    --run-aosp-deqp)
+	CDLP_RUN_AOSP_DEQP=true
 	;;
     # full-piglit-run.sh' <branch>
     --fpr-branch)
@@ -750,6 +879,7 @@ CDLP_TEMP_PATH="${CDLP_TEMP_PATH:-$CDLP_BASE_PATH/cfpr-temp}"
 CDLP_MESA_PATH="${CDLP_MESA_PATH:-$CDLP_BASE_PATH/mesa.git}"
 CDLP_VK_GL_CTS_PATH="${CDLP_VK_GL_CTS_PATH:-$CDLP_BASE_PATH/vk-gl-cts.git}"
 CDLP_VK_LOADER_PATH="${CDLP_VK_LOADER_PATH:-$CDLP_BASE_PATH/LoaderAndValidationLayers.git}"
+CDLP_AOSP_DEQP_PATH="${CDLP_AOSP_DEQP_PATH:-$CDLP_BASE_PATH/aosp-deqp.git}"
 # PATH where to place the piglit results
 CDLP_PIGLIT_RESULTS_DIR="${CDLP_PIGLIT_RESULTS_DIR:-$CDLP_BASE_PATH/piglit-results}"
 
@@ -766,6 +896,7 @@ CDLP_MERGE_BASE_RUN="${CDLP_MERGE_BASE_RUN:-false}"
 CDLP_RUN_VK_CTS="${CDLP_RUN_VK_CTS:-false}"
 CDLP_RUN_GL_CTS="${CDLP_RUN_GL_CTS:-false}"
 CDLP_RUN_PIGLIT="${CDLP_RUN_PIGLIT:-false}"
+CDLP_RUN_AOSP_DEQP="${CDLP_RUN_AOSP_DEQP:-false}"
 
 
 # Docker settings
@@ -806,6 +937,7 @@ CDLP_FORCE_CLEAN="${CDLP_FORCE_CLEAN:-false}"
 if $CDLP_FORCE_CLEAN; then
     clean_mesa
     clean_piglit
+    clean_aosp_deqp "$CDLP_AOSP_DEQP_BRANCH"
     clean_vk_gl_cts "$CDLP_GL_CTS_BRANCH"
     clean_vk_gl_cts "$CDLP_VK_CTS_BRANCH"
     printf "%s\n" "" "rm -Ir $CDLP_TEMP_PATH" ""
@@ -835,7 +967,7 @@ apply_verbosity "$CDLP_VERBOSITY"
 # Sanity check
 # ------------
 
-sanity_check "$CDLP_MESA_BRANCH" "$CDLP_VK_CTS_BRANCH" "$CDLP_GL_CTS_BRANCH"
+sanity_check "$CDLP_MESA_BRANCH" "$CDLP_VK_CTS_BRANCH" "$CDLP_GL_CTS_BRANCH" "$CDLP_AOSP_DEQP_BRANCH"
 if [ $? -ne 0 ]; then
     exit 2
 fi
