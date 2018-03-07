@@ -230,6 +230,12 @@ function build_mesa() {
     git checkout $CDLP_PROGRESS_FLAG -b working "$COMMIT"
     git branch -D old
     CDLP_MESA_COMMIT=$(git show -s --pretty=format:%h "$COMMIT")
+
+    if $CDLP_REUSE; then
+	docker pull "$DOCKER_IMAGE":mesa."$CDLP_MESA_COMMIT" 2>&1
+	test $? -eq 0 && return 0
+    fi
+
     wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.mesa
     # make check is failing right now and we don't really need it
     sed -e 's/&& make check//g' -i Rockerfile.mesa
@@ -292,6 +298,11 @@ function build_vk_gl_cts() {
     git branch -D old
     popd
 
+    if $CDLP_REUSE; then
+	docker pull "$DOCKER_IMAGE":vk-gl-cts."$1" 2>&1
+	test $? -eq 0 && return 0
+    fi
+
     rm -rf "$CDLP_TEMP_PATH/vk-gl-cts.$1"
     git clone $CDLP_PROGRESS_FLAG "$CDLP_VK_GL_CTS_PATH" "$CDLP_TEMP_PATH/vk-gl-cts"
     pushd "$CDLP_VK_GL_CTS_PATH"
@@ -352,6 +363,7 @@ function clean_vk_gl_cts() {
 # returns:
 #   0 is success, an error code otherwise
 function build_piglit() {
+    # We don't use a specific piglit commit. Hence, we cannot reuse.
 
     rm -rf "$CDLP_TEMP_PATH/piglit"
     mkdir -p "$CDLP_TEMP_PATH/piglit"
@@ -394,6 +406,11 @@ function clean_piglit() {
 # returns:
 #   0 is success, an error code otherwise
 function build_aosp_deqp() {
+    if $CDLP_REUSE; then
+	docker pull "${DOCKER_IMAGE}":aosp-deqp."$1" 2>&1
+	test $? -eq 0 && return 0
+    fi
+
     rm -rf "$CDLP_TEMP_PATH/aosp-deqp"
     git clone $CDLP_PROGRESS_FLAG "$CDLP_AOSP_DEQP_PATH" "$CDLP_TEMP_PATH/aosp-deqp"
     pushd "$CDLP_AOSP_DEQP_PATH"
@@ -668,6 +685,7 @@ Options:
   --verbosity [full|normal|quiet]  Which verbosity level to use
                                    [full|normal|quite]. Default, normal.
   --no-clean                       Do not clean the created images
+  --no-reuse                       Rebuild an image even if it already exists
   --debug                          Build images in debug mode
   --force-clean                    Forces the cleaning of the working env
   --base-path <path>               <path> from which to create the rest of the
@@ -734,6 +752,10 @@ do
     # Do not clean the created images
     --no-clean)
 	CDLP_CLEAN=false
+	;;
+    # Rebuild an image even if it already exists
+    --no-reuse)
+	CDLP_REUSE=false
 	;;
     # Build images in debug mode
     --debug)
@@ -909,6 +931,12 @@ DOCKER_IMAGE="${CDLP_DOCKER_REPOSITORY:-igalia/mesa}"
 # ---------
 
 CDLP_CLEAN="${CDLP_CLEAN:-true}"
+
+
+# Reusing?
+# ---------
+
+CDLP_REUSE="${CDLP_REUSE:-true}"
 
 
 # Debug?
