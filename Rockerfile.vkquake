@@ -1,0 +1,79 @@
+#
+# This installs vkQuake , Quake port to use Vulkan. For testing purposes.
+#
+#
+# ~~~
+#  rocker build -f Rockerfile.vkquake                                 \
+#    --var VIDEO_GID=`getent group video | cut -f3 -d:`               \
+#    [--var TAG=vkquake]   # vkquake-17.0, vkquake-cts-13.0, ...      \
+#    --var RELEASE=master    # master, pre-release-17.0, pre-release-13.0, ...
+# ~~~
+#
+# Environment variables that are used in the build:
+#  - DOCKER_IMAGE: name of the final image to be tagged (default: igalia/mesa)
+#
+# To run
+#
+# ~~~
+#   docker run --privileged --rm -v /tmp/.X11-unix:/tmp/.X11-unix \
+#              -e DISPLAY=unix$DISPLAY                            \
+#              [-e LIBGL_ALWAYS_SOFTWARE=1]                       \
+#              [-e GALLIUM_DRIVER=$GALLIUM_DRIVER]                \
+#              igalia/mesa:vkquake
+# ~~~
+#
+# GALLIUM_DRIVER = [ llvmpipe, swr, softpipe ]
+#
+
+{{ $image := (or .Env.DOCKER_IMAGE "igalia/mesa") }}
+{{ $ccachedir := (or .Env.CCACHE_DIR "~/.ccache") }}
+
+FROM {{ $image }}:{{ .RELEASE }}
+
+LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
+
+RUN apt-get update                                                  \
+  && apt-get -y --no-install-recommends install libvulkan-dev       \
+      libvorbis-dev libmad0-dev mercurial                           \
+  && rm -fr /var/lib/apt/lists/*
+
+# {{ .VIDEO_GID }} is the gid for outside's video group. Required to access to
+# /dev/dri/renderD128
+RUN usermod -G {{ .VIDEO_GID }} -a local
+
+USER local
+
+{{ if .Env.MAKEFLAGS }}
+ENV MAKEFLAGS={{ .Env.MAKEFLAGS }}
+{{ end }}
+
+MOUNT {{ $ccachedir }}:/home/local/.ccache:Z
+
+RUN sudo chown -R local:local /home/local/.ccache
+
+ENV PATH=/usr/lib/ccache:$PATH
+
+RUN hg clone http://hg.libsdl.org/SDL   \
+  && cd SDL                             \
+  && ./configure --prefix /usr/local    \
+  && make                               \
+  && sudo make install                  \
+  && rm -fr ../SDL
+
+RUN git clone https://github.com/Novum/vkQuake  \
+  && cd vkQuake/Quake                           \
+  && make -j5
+
+WORKDIR /home/local/vkQuake/Quake
+
+RUN mkdir -p id1
+
+ADD https://www.mirafiori.com/ftp/pub/gaming/pak0.pak id1/
+
+ADD https://www.mirafiori.com/ftp/pub/gaming/pak1.pak id1/
+
+CMD "/bin/sh" "-c" "/home/local/vkQuake/Quake/vkquake"
+
+{{ if .TAG }}
+TAG {{ $image }}:{{ .TAG }}
+{{ end }}
