@@ -1,0 +1,98 @@
+#
+# This builds and installs Crucible testsuite.
+#
+#
+# ~~~
+#  rocker build -f Rockerfile.crucible                                  \
+#    --var VIDEO_GID=`getent group video | cut -f3 -d:`                 \
+#    [--var TAG=crucible ]      # crucible-17.0, crucible-13.0, ...     \
+#    --var RELEASE=master       # master, pre-release-17.0, pre-release-13.0, ...
+# ~~~
+#
+# Environment variables that are used in the build:
+#  - DOCKER_IMAGE: name of the final image to be tagged (default: igalia/mesa)
+#  - MAKEFLAGS: flags to pass to make (e.g., "-j8")
+#  - CCACHE_DIR: ccache directory (default: ~/.ccache)
+#
+# To run
+#
+# ~~~
+#   mkdir -p -m777 ~/my_results_dir
+#   docker run --privileged --rm -t -v ~/my_results_dir:/results:Z  \
+#              -v /tmp/.X11-unix:/tmp/.X11-unix \
+#              -e DISPLAY=unix$DISPLAY \
+#              igalia/mesa:crucible
+# ~~~
+#
+#
+
+{{ $fpr := (or .FPR_BRANCH "master") }}
+{{ $image := (or .Env.DOCKER_IMAGE "igalia/mesa") }}
+{{ $ccachedir := (or .Env.CCACHE_DIR "~/.ccache") }}
+
+FROM {{ $image }}:{{ .RELEASE }}
+
+LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
+
+RUN apt-get update                                                  \
+  && apt-get -y --no-install-recommends install python-opencv       \
+    libpng12-dev asciidoc python3 libvulkan-dev libxml2-utils       \
+    docbook-xml xsltproc                                            \
+  && rm -fr /var/lib/apt/lists/*
+
+RUN pip install ninja
+
+# {{ .VIDEO_GID }} is the gid for outside's video group. Required to access to
+# /dev/dri/renderD128
+RUN usermod -G {{ .VIDEO_GID }} -a local
+
+USER local
+
+{{ if .Env.MAKEFLAGS }}
+ENV MAKEFLAGS={{ .Env.MAKEFLAGS }}
+{{ end }}
+
+MOUNT {{ $ccachedir }}:/home/local/.ccache:Z
+
+RUN sudo chown -R local:local /home/local/.ccache
+
+ENV PATH=/usr/lib/ccache:$PATH
+
+RUN git clone --depth 1 https://github.com/google/shaderc /home/local/shaderc
+
+RUN git clone --depth 1 https://github.com/google/googletest.git /home/local/shaderc/third_party/googletest
+
+RUN git clone --depth 1 https://github.com/google/glslang.git /home/local/shaderc/third_party/glslang
+
+RUN git clone --depth 1 https://github.com/KhronosGroup/SPIRV-Tools.git /home/local/shaderc/third_party/spirv-tools
+
+RUN git clone --depth 1 https://github.com/KhronosGroup/SPIRV-Headers.git /home/local/shaderc/third_party/spirv-headers
+
+RUN git clone --depth 1 https://anongit.freedesktop.org/git/mesa/crucible.git /home/local/crucible
+
+RUN mkdir -p /home/local/shaderc/build
+
+WORKDIR /home/local/shaderc/build
+
+RUN git show --stat > /home/local/shaderc-head.txt
+
+RUN cmake -GNinja -DCMAKE_BUILD_TYPE=Debug ..   \
+  && ninja                                      \
+  && sudo ninja install
+
+WORKDIR /home/local/crucible
+
+RUN git show --stat > /home/local/crucible-head.txt
+
+# Workaround to fix problems around format-security
+ENV CFLAGS="-Wno-format-security -I/usr/include/libxml2"
+
+RUN ./autogen.sh && make -e
+
+VOLUME /results
+
+CMD "/bin/sh" "-c" "cp /home/local/*head.txt /results && export MESA_COMMIT=\$(grep commit /home/local/mesa-head.txt | cut -d \" \" -f 2) && export CRUCIBLE_COMMIT=\$(git -C /home/local/crucible rev-parse --short HEAD) && ./bin/crucible run --junit-xml=/results/crucible-\$(date +%Y%m%d%H%M%S)-\$CRUCIBLE_COMMIT-mesa-\$MESA_COMMIT.xml"
+
+{{ if .TAG }}
+TAG {{ $image }}:{{ .TAG }}
+{{ end }}
