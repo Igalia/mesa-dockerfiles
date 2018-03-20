@@ -221,7 +221,7 @@ function build_mesa() {
     wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.mesa
     # make check is failing right now and we don't really need it
     sed -e 's/&& make check//g' -i Rockerfile.mesa
-    rocker build --pull -f Rockerfile.mesa --var BUILD="autotools" --var LLVM="3.9" --var DEBUG=true --var TAG=released-17.1.2."$CDLP_MESA_COMMIT"
+    rocker build --pull -f Rockerfile.mesa --var BUILD="autotools" --var LLVM="3.9" --var DEBUG=true --var TAG=mesa."$CDLP_MESA_COMMIT"
     popd
 
     return 0
@@ -238,7 +238,7 @@ function build_mesa() {
 function clean_mesa() {
     rm -rf "$CDLP_TEMP_PATH/mesa"
     if $CDLP_CLEAN; then
-	docker rmi igalia/mesa:released-17.1.2."$CDLP_MESA_COMMIT"
+	docker rmi igalia/mesa:mesa."$CDLP_MESA_COMMIT"
     fi
 
     return 0
@@ -281,7 +281,7 @@ function build_vk_gl_cts() {
     popd
     pushd "$CDLP_TEMP_PATH"
     wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.vk-gl-cts
-    rocker build -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var FPR_BRANCH="${CDLP_FPR_BRANCH}" --var TAG=vk-gl-cts."$1" --var RELEASE=released-17.1.2."$CDLP_MESA_COMMIT"
+    rocker build -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var FPR_BRANCH="${CDLP_FPR_BRANCH}" --var TAG=vk-gl-cts."$1" --var RELEASE=mesa."$CDLP_MESA_COMMIT"
     popd
 
     mv "$CDLP_TEMP_PATH/LoaderAndValidationLayers" "$CDLP_TEMP_PATH/LoaderAndValidationLayers.$1"
@@ -324,7 +324,7 @@ function build_piglit() {
     mkdir -p "$CDLP_TEMP_PATH/piglit"
     pushd "$CDLP_TEMP_PATH/piglit"
     wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.piglit
-    rocker build -f Rockerfile.piglit --var FPR_BRANCH="${CDLP_FPR_BRANCH}" --var TAG=piglit --var RELEASE=released-17.1.2."$CDLP_MESA_COMMIT"
+    rocker build -f Rockerfile.piglit --var FPR_BRANCH="${CDLP_FPR_BRANCH}" --var TAG=piglit --var RELEASE=mesa."$CDLP_MESA_COMMIT"
     popd
 
     return 0
