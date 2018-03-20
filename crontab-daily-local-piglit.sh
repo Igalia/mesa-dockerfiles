@@ -225,7 +225,7 @@ function build_mesa() {
     __CDLP_OLD_DOCKER_IMAGE="$DOCKER_IMAGE"
     DOCKER_IMAGE="igalia/mesa"
 
-    rocker build --pull -f Rockerfile.mesa --var BUILD="autotools" --var LLVM="5.0" --var CLEAN=false --var DEBUG=false --var TAG=mesa."$CDLP_MESA_COMMIT"
+    rocker build --pull -f Rockerfile.mesa --var BUILD="autotools" --var LLVM="5.0" --var CLEAN=false --var DEBUG="$CDLP_DEBUG" --var TAG=mesa."$CDLP_MESA_COMMIT"
     popd
 
     if [ ! -z "$CDLP_DOCKER_REPOSITORY" ]; then
@@ -297,7 +297,7 @@ function build_vk_gl_cts() {
     popd
     pushd "$CDLP_TEMP_PATH"
     wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/master/Rockerfile.vk-gl-cts
-    DOCKER_IMAGE="$DOCKER_IMAGE" rocker build -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var FPR_BRANCH="$CDLP_FPR_BRANCH" --var DEBUG=false --var TAG=vk-gl-cts."$1" --var RELEASE=mesa."$CDLP_MESA_COMMIT"${CDLP_GL_CTS_GTF:+ --var GTF=}"$CDLP_GL_CTS_GTF"
+    DOCKER_IMAGE="$DOCKER_IMAGE" rocker build -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var FPR_BRANCH="$CDLP_FPR_BRANCH" --var DEBUG="$CDLP_DEBUG" --var TAG=vk-gl-cts."$1" --var RELEASE=mesa."$CDLP_MESA_COMMIT"${CDLP_GL_CTS_GTF:+ --var GTF=}"$CDLP_GL_CTS_GTF"
     popd
 
     if [ ! -z "$CDLP_DOCKER_REPOSITORY" ]; then
@@ -557,6 +557,7 @@ Options:
   --verbosity [full|normal|quiet]  Which verbosity level to use
                                    [full|normal|quite]. Default, normal.
   --no-clean                       Do not clean the created images
+  --debug                          Build images in debug mode
   --force-clean                    Forces the cleaning of the working env
   --base-path <path>               <path> from which to create the rest of the
                                    relative paths
@@ -619,6 +620,10 @@ do
     # Do not clean the created images
     --no-clean)
 	CDLP_CLEAN=false
+	;;
+    # Build images in debug mode
+    --debug)
+	CDLP_DEBUG=true
 	;;
     # Forces the cleaning of the working env
     --force-clean)
@@ -773,6 +778,12 @@ DOCKER_IMAGE="${CDLP_DOCKER_REPOSITORY:-igalia/mesa}"
 # ---------
 
 CDLP_CLEAN="${CDLP_CLEAN:-true}"
+
+
+# Debug?
+# ---------
+
+CDLP_DEBUG="${CDLP_DEBUG:-false}"
 
 
 # dry run?
