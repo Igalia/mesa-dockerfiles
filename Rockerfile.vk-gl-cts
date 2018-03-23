@@ -5,12 +5,13 @@
 # repositories.
 #
 # ~~~
-#  rocker build -f Rockerfile.vk-gl-cts                                 \
-#    --var VIDEO_GID=`getent group video | cut -f3 -d:`                 \
-#    [--var DEBUG=true]         # true, false                           \
-#    [--var FPR_BRANCH=master]  # master, test/mesa-17.3, ...           \
-#    [--var TAG=vk-gl-cts]      # vk-gl-cts-17.0, vk-gl-cts-13.0, ...   \
-#    [--var GTF=gles32]         # gl, gles32, gles31, gles3, gles2      \
+#  rocker build -f Rockerfile.vk-gl-cts                                                                        \
+#    --var VIDEO_GID=`getent group video | cut -f3 -d:`                                                        \
+#    [--var DEBUG=true]         # true, false                                                                  \
+#    [--var FPR_BRANCH=master]  # master, test/mesa-17.3, ...                                                  \
+#    [--var TAG=vk-gl-cts]      # vk-gl-cts-17.0, vk-gl-cts-13.0, ...                                          \
+#    [--var TARGET=x11_egl]     # android, default, null, nullws, wayland, x11_egl, x11_egl_glx, x11_glx, ...  \
+#    [--var GTF=gles32]         # gl, gles32, gles31, gles3, gles2                                             \
 #    --var RELEASE=master       # master, pre-release-17.0, pre-release-13.0, ...
 # ~~~
 #
@@ -39,6 +40,7 @@
 {{ $image := (or .Env.DOCKER_IMAGE "igalia/mesa") }}
 {{ $ccachedir := (or .Env.CCACHE_DIR "~/.ccache") }}
 {{ $debug_build := (or .DEBUG "true") }}
+{{ $deqp_target := (or .TARGET "x11_egl") }}
 
 FROM {{ $image }}:{{ .RELEASE }}
 
@@ -47,6 +49,7 @@ LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 RUN apt-get update                                                  \
   && apt-get -y --no-install-recommends install cmake               \
     python3-pip python3-setuptools python3-wheel                    \
+    {{ if eq $deqp_target "wayland" }}weston{{ end }}               \
   && rm -fr /var/lib/apt/lists/*
 
 RUN pip3 install mako six
@@ -105,8 +108,12 @@ RUN cmake .. -DBUILD_WSI_MIR_SUPPORT=OFF \
 
 WORKDIR /home/local/vk-gl-cts/build
 
+{{ if eq $deqp_target "wayland" }}
+ENV XDG_RUNTIME_DIR=/tmp
+{{ end }}
+
 RUN python2 ../external/fetch_sources.py                                           \
-  && cmake .. -DDEQP_TARGET=x11_egl                                                \
+  && cmake .. -DDEQP_TARGET={{ $deqp_target }}                                     \
               {{ if ne $debug_build "true" }} -DCMAKE_BUILD_TYPE=Release {{ end }} \
               {{ if .GTF }} -DGLCTS_GTF_TARGET={{ .GTF }} {{ end }}                \
   && cmake --build .
@@ -115,7 +122,7 @@ RUN git show --stat > /home/local/vk-gl-cts-head.txt
 
 VOLUME /results
 
-CMD "/bin/sh" "-c" "cp /home/local/*head.txt /results && CTS_SUITE=\"--run-gl-cts\" && if test \"x\$CTS\" = \"xvulkan\"; then CTS_SUITE=\"--run-vk-cts\"; fi && export MESA_COMMIT=\$(grep commit /home/local/mesa-head.txt | cut -d \" \" -f 2) && /home/local/full-piglit-run.sh \$FPR_EXTRA_ARGS \$CTS_SUITE --base-path /home/local --piglit-path /home/local/igalia-piglit --vk-gl-cts-path /home/local/vk-gl-cts/build --piglit-results-path /results --driver \$GL_DRIVER --commit \$MESA_COMMIT"
+CMD "/bin/sh" "-c" "cp /home/local/*head.txt /results && CTS_SUITE=\"--run-gl-cts\" && if test \"x\$TARGET\" = \"xwayland\"; then weston > /tmp/weston.log & sleep 5 fi && if test \"x\$CTS\" = \"xvulkan\"; then CTS_SUITE=\"--run-vk-cts\"; fi && export MESA_COMMIT=\$(grep commit /home/local/mesa-head.txt | cut -d \" \" -f 2) && /home/local/full-piglit-run.sh \$FPR_EXTRA_ARGS \$CTS_SUITE --base-path /home/local --piglit-path /home/local/igalia-piglit --vk-gl-cts-path /home/local/vk-gl-cts/build --piglit-results-path /results --driver \$GL_DRIVER --commit \$MESA_COMMIT"
 
 {{ if .TAG }}
 TAG {{ $image }}:{{ .TAG }}
