@@ -320,7 +320,7 @@ function build_vk_gl_cts() {
     popd
     pushd "$CDLP_TEMP_PATH"
     wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/cts/Rockerfile.vk-gl-cts
-    DOCKER_IMAGE="$DOCKER_IMAGE" rocker build -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var FPR_BRANCH="$CDLP_FPR_BRANCH" --var DEBUG="$CDLP_DEBUG" --var TAG=vk-gl-cts."$1" --var RELEASE=mesa."$CDLP_MESA_COMMIT"${CDLP_GL_CTS_GTF:+ --var GTF=}"$CDLP_GL_CTS_GTF"
+    DOCKER_IMAGE="$DOCKER_IMAGE" rocker build -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var FPR_BRANCH="$CDLP_FPR_BRANCH" --var TARGET="$CDLP_VK_GL_CTS_TARGET" --var DEBUG="$CDLP_DEBUG" --var TAG=vk-gl-cts."$1" --var RELEASE=mesa."$CDLP_MESA_COMMIT"${CDLP_GL_CTS_GTF:+ --var GTF=}"$CDLP_GL_CTS_GTF"
     popd
 
     if [ ! -z "$CDLP_DOCKER_REPOSITORY" ]; then
@@ -701,6 +701,7 @@ Options:
   --vk-cts-commit <commit>         VK-CTS <commit> to use
   --gl-cts-commit <commit>         GL-CTS <commit> to use
   --aosp-deqp-commit <commit>      AOSP dEQP <commit> to use
+  --vk-gl-cts-target <target>      VK-GL-CTS <target> to use
   --gl-cts-gtf <gtf-target>        GL-CTS <gtf-target> to use
   --docker-repository <repository> Docker <repository> to push to
   --merge-base-run                 merge-base run
@@ -830,6 +831,12 @@ do
 	shift
 	CDLP_AOSP_DEQP_BRANCH=$1
 	;;
+    # VK-GL-CTS target to use
+    --vk-gl-cts-target)
+	check_option_args $1 $2
+	shift
+	CDLP_VK_GL_CTS_TARGET=$1
+	;;
     # GL-CTS GTF target to use
     --gl-cts-gtf)
 	check_option_args $1 $2
@@ -919,6 +926,12 @@ CDLP_RUN_VK_CTS="${CDLP_RUN_VK_CTS:-false}"
 CDLP_RUN_GL_CTS="${CDLP_RUN_GL_CTS:-false}"
 CDLP_RUN_PIGLIT="${CDLP_RUN_PIGLIT:-false}"
 CDLP_RUN_AOSP_DEQP="${CDLP_RUN_AOSP_DEQP:-false}"
+
+
+# What VK-GL-CTS target to use?
+# -----------------------------
+
+CDLP_VK_GL_CTS_TARGET="${CDLP_VK_GL_CTS_TARGET:-x11_egl}"
 
 
 # Docker settings
