@@ -137,25 +137,25 @@ RUN wget https://people.freedesktop.org/~cbrill/libtxc_dxtn/libtxc_dxtn-1.0.1.ta
 {{ end }}
 {{ end }}
 
-RUN wget https://wayland.freedesktop.org/releases/wayland-1.13.0.tar.xz                 \
-  && tar -Jxvf wayland-1.13.0.tar.xz                                                    \
-  && rm wayland-1.13.0.tar.xz                                                           \
-  && cd wayland-1.13.0                                                                  \
+RUN wget https://wayland.freedesktop.org/releases/wayland-1.15.0.tar.xz                 \
+  && tar -Jxvf wayland-1.15.0.tar.xz                                                    \
+  && rm wayland-1.15.0.tar.xz                                                           \
+  && cd wayland-1.15.0                                                                  \
   && ./configure --disable-documentation                                                \
   && make                                                                               \
   && sudo make install                                                                  \
   && sudo ldconfig                                                                      \
-  && sudo rm -fr ../wayland-1.13.0
+  && sudo rm -fr ../wayland-1.15.0
 
-RUN wget https://wayland.freedesktop.org/releases/wayland-protocols-1.8.tar.xz          \
-  && tar -Jxvf wayland-protocols-1.8.tar.xz                                             \
-  && rm wayland-protocols-1.8.tar.xz                                                    \
-  && cd wayland-protocols-1.8                                                           \
+RUN wget https://wayland.freedesktop.org/releases/wayland-protocols-1.14.tar.xz         \
+  && tar -Jxvf wayland-protocols-1.14.tar.xz                                            \
+  && rm wayland-protocols-1.14.tar.xz                                                   \
+  && cd wayland-protocols-1.14                                                          \
   && ./configure                                                                        \
   && make                                                                               \
   && sudo make install                                                                  \
   && sudo ldconfig                                                                      \
-  && sudo rm -fr ../wayland-protocols-1.8
+  && sudo rm -fr ../wayland-protocols-1.14
 
 USER root
 
