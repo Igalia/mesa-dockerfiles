@@ -173,43 +173,43 @@ RUN ./autogen.sh                            \
   && mv mesa-$__version.tar.xz /home/local/
 {{ else if eq .BUILD "gallium" }}
 RUN export LLVM={{ $llvm_version }}.0\
-  && eval `cat configure.ac | egrep ^LLVM_REQUIRED`                                                                                                       \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_GALLIUM ; then GALLIUM_DRIVERS=i915,svga,swrast,nouveau,r300,freedreno,vc4,virgl,etnaviv,imx ; fi \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_R600 ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,r600 ; fi                                            \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADEONSI ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,radeonsi ; fi                                    \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_SWR ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,swr ; fi                                              \
-  && ./autogen.sh --with-dri-drivers=""                                                                                                                   \
-    --with-gallium-drivers=$GALLIUM_DRIVERS                                                                                                               \
-    {{ if ne $llvm_version "0.0" }} --enable-llvm --enable-llvm-shared-libs {{ end }}                                                                     \
-    {{ if ne $debug_build "false" }} --enable-debug {{ end }}                                                                                             \
-    --disable-glx --disable-gbm --disable-egl                                                                                                             \
-  && make                                                                                                                                                 \
+  && eval `cat configure.ac | egrep ^LLVM_REQUIRED`                                                                                                             \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_GALLIUM ; then GALLIUM_DRIVERS=i915,svga,swrast,nouveau,r300,freedreno,v3d,vc4,virgl,etnaviv,imx ; fi   \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_R600 ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,r600 ; fi                                                  \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADEONSI ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,radeonsi ; fi                                          \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_SWR ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,swr ; fi                                                    \
+  && ./autogen.sh --with-dri-drivers=""                                                                                                                         \
+    --with-gallium-drivers=$GALLIUM_DRIVERS                                                                                                                     \
+    {{ if ne $llvm_version "0.0" }} --enable-llvm --enable-llvm-shared-libs {{ end }}                                                                           \
+    {{ if ne $debug_build "false" }} --enable-debug {{ end }}                                                                                                   \
+    --disable-glx --disable-gbm --disable-egl                                                                                                                   \
+  && make                                                                                                                                                       \
   && make check
 {{ else if eq .BUILD "meson" }}
-RUN meson -Dbuild-tests=true _build                                                                                                                       \
-  && ninja -C _build                                                                                                                                      \
-  && ninja -C _build test                                                                                                                                 \
-  && sudo ninja -C _build install                                                                                                                         \
+RUN meson -Dbuild-tests=true _build                                                                                                                             \
+  && ninja -C _build                                                                                                                                            \
+  && ninja -C _build test                                                                                                                                       \
+  && sudo ninja -C _build install                                                                                                                               \
   && sudo ldconfig
 {{ else }}
 RUN export LLVM={{ $llvm_version }}.0\
-  && eval `cat configure.ac | egrep ^LLVM_REQUIRED`                                                                                                       \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_GALLIUM ; then GALLIUM_DRIVERS=i915,svga,swrast,nouveau,r300,freedreno,vc4,virgl,etnaviv,imx ; fi \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_R600 ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,r600 ; fi                                            \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADEONSI ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,radeonsi ; fi                                    \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_SWR ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,swr ; fi                                              \
-  && VULKAN_DRIVERS=intel                                                                                                                                 \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADV ; then VULKAN_DRIVERS=$VULKAN_DRIVERS,radeon ; fi                                            \
-  && ./autogen.sh --with-egl-platforms=x11,drm,wayland                                                                                                    \
-    --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                                                                                               \
-    --with-gallium-drivers=$GALLIUM_DRIVERS                                                                                                               \
-    --with-vulkan-drivers=$VULKAN_DRIVERS                                                                                                                 \
-    {{ if ne $llvm_version "0.0" }} --enable-llvm --enable-llvm-shared-libs {{ end }}                                                                     \
-    {{ if ne $debug_build "false" }} --enable-debug {{ end }}                                                                                             \
-    --enable-glx-tls --enable-gbm --enable-egl                                                                                                            \
-  && make                                                                                                                                                 \
-  && make check                                                                                                                                           \
-  && sudo make install                                                                                                                                    \
+  && eval `cat configure.ac | egrep ^LLVM_REQUIRED`                                                                                                             \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_GALLIUM ; then GALLIUM_DRIVERS=i915,svga,swrast,nouveau,r300,freedreno,v3d,vc4,virgl,etnaviv,imx ; fi   \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_R600 ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,r600 ; fi                                                  \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADEONSI ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,radeonsi ; fi                                          \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_SWR ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,swr ; fi                                                    \
+  && VULKAN_DRIVERS=intel                                                                                                                                       \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADV ; then VULKAN_DRIVERS=$VULKAN_DRIVERS,radeon ; fi                                                  \
+  && ./autogen.sh --with-egl-platforms=x11,drm,wayland                                                                                                          \
+    --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                                                                                                     \
+    --with-gallium-drivers=$GALLIUM_DRIVERS                                                                                                                     \
+    --with-vulkan-drivers=$VULKAN_DRIVERS                                                                                                                       \
+    {{ if ne $llvm_version "0.0" }} --enable-llvm --enable-llvm-shared-libs {{ end }}                                                                           \
+    {{ if ne $debug_build "false" }} --enable-debug {{ end }}                                                                                                   \
+    --enable-glx-tls --enable-gbm --enable-egl                                                                                                                  \
+  && make                                                                                                                                                       \
+  && make check                                                                                                                                                 \
+  && sudo make install                                                                                                                                          \
   && sudo ldconfig
 {{ end }}
 
