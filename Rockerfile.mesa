@@ -174,7 +174,7 @@ RUN ./autogen.sh                            \
 {{ else if eq .BUILD "gallium" }}
 RUN export LLVM={{ $llvm_version }}.0\
   && eval `cat configure.ac | egrep ^LLVM_REQUIRED`                                                                                                             \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_GALLIUM ; then GALLIUM_DRIVERS=i915,svga,swrast,nouveau,r300,freedreno,v3d,vc4,virgl,etnaviv,imx ; fi   \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_GALLIUM ; then GALLIUM_DRIVERS=i915,svga,swrast,nouveau,r300,freedreno,vc4,virgl,etnaviv,imx ; fi       \
   && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_R600 ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,r600 ; fi                                                  \
   && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADEONSI ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,radeonsi ; fi                                          \
   && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_SWR ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,swr ; fi                                                    \
@@ -194,7 +194,7 @@ RUN meson -Dbuild-tests=true _build                                             
 {{ else }}
 RUN export LLVM={{ $llvm_version }}.0\
   && eval `cat configure.ac | egrep ^LLVM_REQUIRED`                                                                                                             \
-  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_GALLIUM ; then GALLIUM_DRIVERS=i915,svga,swrast,nouveau,r300,freedreno,v3d,vc4,virgl,etnaviv,imx ; fi   \
+  && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_GALLIUM ; then GALLIUM_DRIVERS=i915,svga,swrast,nouveau,r300,freedreno,vc4,virgl,etnaviv,imx ; fi       \
   && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_R600 ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,r600 ; fi                                                  \
   && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADEONSI ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,radeonsi ; fi                                          \
   && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_SWR ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,swr ; fi                                                    \
