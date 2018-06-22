@@ -3,7 +3,7 @@
 #
 # ~~~
 #  rocker build -f Rockerfile.llvm      \
-#    --var LLVM=3.3             # 3.3, 3.6, 3.8, 3.9, 4.0 or 5.0
+#    --var LLVM=3.3             # 3.3, 3.6, 3.8, 3.9, 4.0, 5.0, 6.0 ...
 # ~~~
 #
 # Environment variables that are used in the build:
