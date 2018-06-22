@@ -93,24 +93,24 @@ RUN wget http://xorg.freedesktop.org/releases/individual/proto/presentproto-1.0.
   && sudo ldconfig                                                                      \
   && sudo rm -fr ../presentproto-1.0
 
-RUN wget http://xcb.freedesktop.org/dist/xcb-proto-1.13.tar.bz2 \
-  && tar -jxvf xcb-proto-1.13.tar.bz2                           \
-  && rm xcb-proto-1.13.tar.bz2                                  \
-  && cd xcb-proto-1.13                                          \
-  && ./configure                                                \
-  && make                                                       \
-  && sudo make install                                          \
-  && sudo ldconfig                                              \
+RUN wget http://xcb.freedesktop.org/dist/xcb-proto-1.13.tar.bz2                         \
+  && tar -jxvf xcb-proto-1.13.tar.bz2                                                   \
+  && rm xcb-proto-1.13.tar.bz2                                                          \
+  && cd xcb-proto-1.13                                                                  \
+  && ./configure                                                                        \
+  && make                                                                               \
+  && sudo make install                                                                  \
+  && sudo ldconfig                                                                      \
   && sudo rm -fr ../xcb-proto-1.13
 
-RUN wget http://xcb.freedesktop.org/dist/libxcb-1.13.tar.bz2    \
-  && tar -jxvf libxcb-1.13.tar.bz2                              \
-  && rm libxcb-1.13.tar.bz2                                     \
-  && cd libxcb-1.13                                             \
-  && ./configure                                                \
-  && make                                                       \
-  && sudo make install                                          \
-  && sudo ldconfig                                              \
+RUN wget http://xcb.freedesktop.org/dist/libxcb-1.13.tar.bz2                            \
+  && tar -jxvf libxcb-1.13.tar.bz2                                                      \
+  && rm libxcb-1.13.tar.bz2                                                             \
+  && cd libxcb-1.13                                                                     \
+  && ./configure                                                                        \
+  && make                                                                               \
+  && sudo make install                                                                  \
+  && sudo ldconfig                                                                      \
   && sudo rm -fr ../libxcb-1.13
 
 RUN wget http://xorg.freedesktop.org/releases/individual/lib/libxshmfence-1.1.tar.bz2   \
