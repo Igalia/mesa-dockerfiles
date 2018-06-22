@@ -40,7 +40,7 @@ FROM {{ $image }}:{{ .RELEASE }}
 LABEL maintainer "Andres Gomez <agomez@igalia.com>"
 
 RUN apt-get update                                                  \
-  && apt-get -y --no-install-recommends install cmake libxrandr-dev \
+  && apt-get -y --no-install-recommends install cmake               \
     python3-setuptools python3-pip                                  \
   && rm -fr /var/lib/apt/lists/*
 

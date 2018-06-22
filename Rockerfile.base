@@ -113,6 +113,46 @@ RUN wget http://xcb.freedesktop.org/dist/libxcb-1.13.tar.bz2    \
   && sudo ldconfig                                              \
   && sudo rm -fr ../libxcb-1.13
 
+RUN wget http://xorg.freedesktop.org//releases/individual/proto/renderproto-0.11.1.tar.bz2 \
+  && tar -jxvf renderproto-0.11.1.tar.bz2                                                  \
+  && rm renderproto-0.11.1.tar.bz2                                                         \
+  && cd renderproto-0.11.1                                                                 \
+  && ./configure                                                                           \
+  && make                                                                                  \
+  && sudo make install                                                                     \
+  && sudo ldconfig                                                                         \
+  && sudo rm -fr ../renderproto.0.11.1
+
+RUN wget http://xorg.freedesktop.org/releases/individual/lib/libXrender-0.9.10.tar.bz2  \
+  && tar -jxvf libXrender-0.9.10.tar.bz2                                                \
+  && rm libXrender-0.9.10.tar.bz2                                                       \
+  && cd libXrender-0.9.10                                                               \
+  && ./configure                                                                        \
+  && make                                                                               \
+  && sudo make install                                                                  \
+  && sudo ldconfig                                                                      \
+  && sudo rm -fr ../libXrender-0.9.10
+
+RUN wget http://xorg.freedesktop.org/releases/individual/proto/randrproto-1.3.0.tar.bz2 \
+  && tar -jxvf randrproto-1.3.0.tar.bz2                                                 \
+  && rm randrproto-1.3.0.tar.bz2                                                        \
+  && cd randrproto-1.3.0                                                                \
+  && ./configure                                                                        \
+  && make                                                                               \
+  && sudo make install                                                                  \
+  && sudo ldconfig                                                                      \
+  && sudo rm -fr ../randrproto-1.3.0
+
+RUN wget http://xorg.freedesktop.org/releases/individual/lib/libXrandr-1.3.0.tar.bz2    \
+  && tar -jxvf libXrandr-1.3.0.tar.bz2                                                  \
+  && rm libXrandr-1.3.0.tar.bz2                                                         \
+  && cd libXrandr-1.3.0                                                                 \
+  && ./configure                                                                        \
+  && make                                                                               \
+  && sudo make install                                                                  \
+  && sudo ldconfig                                                                      \
+  && sudo rm -fr ../libXrandr-1.3.0
+
 RUN wget http://xorg.freedesktop.org/releases/individual/lib/libxshmfence-1.1.tar.bz2   \
   && tar -jxvf libxshmfence-1.1.tar.bz2                                                 \
   && rm libxshmfence-1.1.tar.bz2                                                        \

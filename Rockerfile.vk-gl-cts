@@ -46,7 +46,7 @@ FROM {{ $image }}:{{ .RELEASE }}
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
 RUN apt-get update                                                  \
-  && apt-get -y --no-install-recommends install cmake libxrandr-dev \
+  && apt-get -y --no-install-recommends install cmake               \
     python3-setuptools python3-pip                                  \
     {{ if eq $deqp_target "wayland" }}weston{{ end }}               \
   && rm -fr /var/lib/apt/lists/*
