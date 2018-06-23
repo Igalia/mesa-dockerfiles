@@ -243,7 +243,7 @@ function build_mesa() {
     __CDLP_OLD_DOCKER_IMAGE="$DOCKER_IMAGE"
     DOCKER_IMAGE="igalia/mesa"
 
-    rocker build --pull -f Rockerfile.mesa --var BUILD="autotools" --var LLVM="4.0" --var CLEAN=false --var DEBUG="$CDLP_DEBUG" --var TAG=mesa."$CDLP_MESA_COMMIT"
+    rocker build --pull -f Rockerfile.mesa --var BUILD="autotools" --var LLVM="5.0" --var CLEAN=false --var DEBUG="$CDLP_DEBUG" --var TAG=mesa."$CDLP_MESA_COMMIT"
     popd
 
     if [ ! -z "$CDLP_DOCKER_REPOSITORY" ]; then
