@@ -53,7 +53,7 @@ RUN sudo chown -R local:local /home/local/.ccache
 
 ENV PATH=/usr/lib/ccache:$PATH
 
-RUN hg clone http://hg.libsdl.org/SDL   \
+RUN hg clone https://hg.libsdl.org/SDL  \
   && cd SDL                             \
   && ./configure --prefix /usr/local    \
   && make                               \

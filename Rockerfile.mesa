@@ -125,7 +125,7 @@ RUN git show --stat > /home/local/mesa-head.txt
 {{ if ne $tar_build "true" }}
 {{ if ne .BUILD "android" }}
 RUN export DRM_VERSION=`cat /home/local/mesa/configure.ac | egrep ^LIBDRM.*REQUIRED| cut -f2 -d= | sort -nr | head -n 1` \
-  && wget http://dri.freedesktop.org/libdrm/libdrm-$DRM_VERSION.tar.bz2                                                  \
+  && wget https://dri.freedesktop.org/libdrm/libdrm-$DRM_VERSION.tar.bz2                                                 \
   && tar -jxvf libdrm-$DRM_VERSION.tar.bz2                                                                               \
   && rm libdrm-$DRM_VERSION.tar.bz2                                                                                      \
   && cd libdrm-$DRM_VERSION                                                                                              \

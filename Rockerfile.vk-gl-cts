@@ -74,7 +74,7 @@ RUN chmod +x full-piglit-run.sh
 
 RUN wget -c https://raw.githubusercontent.com/tanty/mesa-resources/{{ $fpr }}/testing/f-p-r-patterns.txt
 
-RUN git clone --depth 1 http://github.com/Igalia/piglit.git -b wip/agomez/dcbaker-deqp-group-at-a-time-_-khr-gl45 /home/local/igalia-piglit
+RUN git clone --depth 1 https://github.com/Igalia/piglit.git -b wip/agomez/dcbaker-deqp-group-at-a-time-_-khr-gl45 /home/local/igalia-piglit
 
 ADD vk-gl-cts /home/local/vk-gl-cts
 

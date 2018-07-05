@@ -14,7 +14,7 @@
 # LLVM 3.3 package has been created with checkinstall using Base image
 #
 # ~~~
-#  wget http://releases.llvm.org/3.3/llvm-3.3.src.tar.gz                                \
+#  wget https://releases.llvm.org/3.3/llvm-3.3.src.tar.gz                               \
 #    && tar xzpf llvm-3.3.src.tar.gz                                                    \
 #    && cd llvm-3.3.src                                                                 \
 #    && mkdir build                                                                     \
@@ -36,8 +36,8 @@ LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 {{ if ge .LLVM "3.9" }}
 RUN apt-get update                                                            \
   && apt-get --no-install-recommends -y install gnupg                         \
-  && wget -qO - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -     \
-  && echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-{{ .LLVM }} main" >> /etc/apt/sources.list \
+  && wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -    \
+  && echo "deb https://apt.llvm.org/xenial/ llvm-toolchain-xenial-{{ .LLVM }} main" >> /etc/apt/sources.list \
   && rm -fr /var/lib/apt/lists/*
 {{ end }}
 
