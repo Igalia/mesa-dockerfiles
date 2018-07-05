@@ -37,7 +37,7 @@ LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 RUN apt-get update                                                            \
   && apt-get --no-install-recommends -y install gnupg                         \
   && wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -    \
-  && echo "deb https://apt.llvm.org/xenial/ llvm-toolchain-xenial-{{ .LLVM }} main" >> /etc/apt/sources.list \
+  && echo "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-{{ .LLVM }} main" >> /etc/apt/sources.list \
   && rm -fr /var/lib/apt/lists/*
 {{ end }}
 
