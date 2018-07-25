@@ -290,12 +290,51 @@ function build_vk_gl_cts() {
 	test $? -eq 0 && return 0
     fi
 
-    rm -rf "$CDLP_TEMP_PATH/LoaderAndValidationLayers.$1"
-    git clone $CDLP_PROGRESS_FLAG "$CDLP_VK_LOADER_PATH" "$CDLP_TEMP_PATH/LoaderAndValidationLayers"
+    rm -rf "$CDLP_TEMP_PATH/glslang.$1"
+    git clone $CDLP_PROGRESS_FLAG "$CDLP_GLSLANG_PATH" "$CDLP_TEMP_PATH/glslang"
+    pushd "$CDLP_GLSLANG_PATH"
+    CDLP_ORIGIN_URL=$(git remote get-url origin)
+    popd
+    pushd "$CDLP_TEMP_PATH/glslang"
+    git remote set-url origin "$CDLP_ORIGIN_URL"
+    git fetch $CDLP_PROGRESS_FLAG origin
+    git branch -m old
+    git checkout $CDLP_PROGRESS_FLAG -b working origin/master
+    git branch -D old
+    popd
+
+    rm -rf "$CDLP_TEMP_PATH/Vulkan-Headers.$1"
+    git clone $CDLP_PROGRESS_FLAG "$CDLP_VK_HEADERS_PATH" "$CDLP_TEMP_PATH/Vulkan-Headers"
+    pushd "$CDLP_VK_HEADERS_PATH"
+    CDLP_ORIGIN_URL=$(git remote get-url origin)
+    popd
+    pushd "$CDLP_TEMP_PATH/Vulkan-Headers"
+    git remote set-url origin "$CDLP_ORIGIN_URL"
+    git fetch $CDLP_PROGRESS_FLAG origin
+    git branch -m old
+    git checkout $CDLP_PROGRESS_FLAG -b working origin/master
+    git branch -D old
+    popd
+
+    rm -rf "$CDLP_TEMP_PATH/Vulkan-Loader.$1"
+    git clone $CDLP_PROGRESS_FLAG "$CDLP_VK_LOADER_PATH" "$CDLP_TEMP_PATH/Vulkan-Loader"
     pushd "$CDLP_VK_LOADER_PATH"
     CDLP_ORIGIN_URL=$(git remote get-url origin)
     popd
-    pushd "$CDLP_TEMP_PATH/LoaderAndValidationLayers"
+    pushd "$CDLP_TEMP_PATH/Vulkan-Loader"
+    git remote set-url origin "$CDLP_ORIGIN_URL"
+    git fetch $CDLP_PROGRESS_FLAG origin
+    git branch -m old
+    git checkout $CDLP_PROGRESS_FLAG -b working origin/master
+    git branch -D old
+    popd
+
+    rm -rf "$CDLP_TEMP_PATH/Vulkan-ValidationLayers.$1"
+    git clone $CDLP_PROGRESS_FLAG "$CDLP_VK_VALIDATION_LAYERS_PATH" "$CDLP_TEMP_PATH/Vulkan-ValidationLayers"
+    pushd "$CDLP_VK_VALIDATION_LAYERS_PATH"
+    CDLP_ORIGIN_URL=$(git remote get-url origin)
+    popd
+    pushd "$CDLP_TEMP_PATH/Vulkan-ValidationLayers"
     git remote set-url origin "$CDLP_ORIGIN_URL"
     git fetch $CDLP_PROGRESS_FLAG origin
     git branch -m old
@@ -327,7 +366,10 @@ function build_vk_gl_cts() {
 	docker push "$DOCKER_IMAGE":vk-gl-cts."$1"
     fi
 
-    mv "$CDLP_TEMP_PATH/LoaderAndValidationLayers" "$CDLP_TEMP_PATH/LoaderAndValidationLayers.$1"
+    mv "$CDLP_TEMP_PATH/glslang" "$CDLP_TEMP_PATH/glslang.$1"
+    mv "$CDLP_TEMP_PATH/Vulkan-Headers" "$CDLP_TEMP_PATH/Vulkan-Headers.$1"
+    mv "$CDLP_TEMP_PATH/Vulkan-Loader" "$CDLP_TEMP_PATH/Vulkan-Loader.$1"
+    mv "$CDLP_TEMP_PATH/Vulkan-ValidationLayers" "$CDLP_TEMP_PATH/Vulkan-ValidationLayers.$1"
     mv "$CDLP_TEMP_PATH/vk-gl-cts" "$CDLP_TEMP_PATH/vk-gl-cts.$1"
     mv "$CDLP_TEMP_PATH/Rockerfile.vk-gl-cts" "$CDLP_TEMP_PATH/Rockerfile.vk-gl-cts.$1"
 
@@ -344,7 +386,10 @@ function build_vk_gl_cts() {
 # returns:
 #   0 is success, an error code otherwise
 function clean_vk_gl_cts() {
-    rm -rf "$CDLP_TEMP_PATH/LoaderAndValidationLayers.$1"
+    rm -rf "$CDLP_TEMP_PATH/glslang.$1"
+    rm -rf "$CDLP_TEMP_PATH/Vulkan-Headers.$1"
+    rm -rf "$CDLP_TEMP_PATH/Vulkan-Loader.$1"
+    rm -rf "$CDLP_TEMP_PATH/Vulkan-ValidationLayers.$1"
     rm -rf "$CDLP_TEMP_PATH/vk-gl-cts.$1"
     rm -f "$CDLP_TEMP_PATH/Rockerfile.vk-gl-cts.$1"
     if $CDLP_CLEAN; then
@@ -694,7 +739,7 @@ Options:
   --mesa-path <path>               <path> to the mesa repository
   --vk-gl-cts-path <path>          <path> to the vk-gl-cts repository
   --aosp-deqp-path                 <path> to the AOSP dEQP repository
-  --vk-loader-path <path>          <path> to the LoaderAndValidationLayers
+  --vk-loader-path <path>          <path> to the Vulkan-Loader
                                    repository
   --piglit-results-dir <path>      <path> where to place the piglit results
   --mesa-commit <commit>           mesa <commit> to use
@@ -796,7 +841,7 @@ do
 	shift
 	CDLP_AOSP_DEQP_PATH=$1
 	;;
-    # PATH to the LoaderAndValidationLayers repository
+    # PATH to the Vulkan-Loader repository
     --vk-loader-path)
 	check_option_args $1 $2
 	shift
@@ -909,7 +954,10 @@ CDLP_TEMP_PATH="${CDLP_TEMP_PATH:-$CDLP_BASE_PATH/cfpr-temp}"
 CDLP_MESA_PATH="${CDLP_MESA_PATH:-$CDLP_BASE_PATH/mesa.git}"
 CDLP_VK_GL_CTS_PATH="${CDLP_VK_GL_CTS_PATH:-$CDLP_BASE_PATH/vk-gl-cts.git}"
 CDLP_AOSP_DEQP_PATH="${CDLP_AOSP_DEQP_PATH:-$CDLP_BASE_PATH/aosp-deqp.git}"
-CDLP_VK_LOADER_PATH="${CDLP_VK_LOADER_PATH:-$CDLP_BASE_PATH/LoaderAndValidationLayers.git}"
+CDLP_GLSLANG_PATH="${CDLP_GLSLANG_PATH:-$CDLP_BASE_PATH/glslang.git}"
+CDLP_VK_HEADERS_PATH="${CDLP_VK_HEADERS_PATH:-$CDLP_BASE_PATH/Vulkan-Headers.git}"
+CDLP_VK_LOADER_PATH="${CDLP_VK_LOADER_PATH:-$CDLP_BASE_PATH/Vulkan-Loader.git}"
+CDLP_VK_VALIDATION_LAYERS_PATH="${CDLP_VK_VALIDATION_LAYERS_PATH:-$CDLP_BASE_PATH/Vulkan-ValidationLayers.git}"
 # PATH where to place the piglit results
 CDLP_PIGLIT_RESULTS_DIR="${CDLP_PIGLIT_RESULTS_DIR:-$CDLP_BASE_PATH/piglit-results}"
 
