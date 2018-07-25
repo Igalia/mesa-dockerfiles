@@ -121,7 +121,7 @@ RUN wget https://xorg.freedesktop.org//releases/individual/proto/renderproto-0.1
   && make                                                                                   \
   && sudo make install                                                                      \
   && sudo ldconfig                                                                          \
-  && sudo rm -fr ../renderproto.0.11.1
+  && sudo rm -fr ../renderproto-0.11.1
 
 RUN wget https://xorg.freedesktop.org/releases/individual/lib/libXrender-0.9.10.tar.bz2 \
   && tar -jxvf libXrender-0.9.10.tar.bz2                                                \
