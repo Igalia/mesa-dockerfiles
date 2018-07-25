@@ -1,7 +1,8 @@
 #
 # This builds and installs Vulkan/OpenGL CTS.
 #
-# Ensure you have cloned vk-gl-cts and Loaderandvalidationlayers repositories.
+# Ensure you have cloned vk-gl-cts, glslang, Vulkan-Headers,
+# Vulkan-Loader and Vulkan-ValidationLayers repositories.
 #
 # ~~~
 #  rocker build -f Rockerfile.vk-gl-cts                                                                        \
@@ -81,20 +82,56 @@ RUN git clone --depth 1 https://github.com/Igalia/piglit.git -b wip/agomez/dcbak
 
 ADD vk-gl-cts /home/local/vk-gl-cts
 
-ADD LoaderAndValidationLayers /home/local/LoaderAndValidationLayers
+ADD glslang /home/local/glslang
 
-RUN sudo chown -R local:local /home/local/vk-gl-cts  /home/local/LoaderAndValidationLayers
+ADD Vulkan-Headers /home/local/Vulkan-Headers
 
-RUN mkdir /home/local/vk-gl-cts/build  /home/local/LoaderAndValidationLayers/build
+ADD Vulkan-Loader /home/local/Vulkan-Loader
 
-WORKDIR /home/local/LoaderAndValidationLayers/build
+ADD Vulkan-ValidationLayers /home/local/Vulkan-ValidationLayers
 
-RUN ../update_external_sources.sh                      \
-  && cmake .. -DBUILD_WSI_MIR_SUPPORT=OFF              \
-  && cmake --build .                                   \
-  && sudo make install                                 \
-  && sudo ldconfig                                     \
-  && sudo rm -fr /home/local/LoaderAndValidationLayers
+RUN sudo chown -R local:local /home/local/vk-gl-cts /home/local/glslang /home/local/Vulkan-Headers /home/local/Vulkan-Loader /home/local/Vulkan-ValidationLayers
+
+RUN mkdir /home/local/vk-gl-cts/build /home/local/glslang/build /home/local/Vulkan-Headers/build /home/local/Vulkan-Loader/build /home/local/Vulkan-ValidationLayers/build
+
+WORKDIR /home/local/glslang
+
+RUN git clone https://github.com/google/googletest.git External/googletest
+
+RUN ./update_glslang_sources.py
+
+WORKDIR /home/local/glslang/build
+
+RUN cmake ..           \
+  && cmake --build .   \
+  && sudo make install \
+  && sudo ldconfig     \
+  && sudo rm -fr /home/local/glslang
+
+WORKDIR /home/local/Vulkan-Headers/build
+
+RUN cmake ..           \
+  && cmake --build .   \
+  && sudo make install \
+  && sudo ldconfig     \
+  && sudo rm -fr /home/local/Vulkan-Headers
+
+WORKDIR /home/local/Vulkan-Loader/build
+
+RUN cmake .. -DBUILD_WSI_MIR_SUPPORT=OFF \
+  && cmake --build .                     \
+  && sudo make install                   \
+  && sudo ldconfig                       \
+  && sudo rm -fr /home/local/Vulkan-Loader
+
+WORKDIR /home/local/Vulkan-ValidationLayers/build
+
+RUN cmake .. -DBUILD_WSI_MIR_SUPPORT=OFF          \
+             -DGLSLANG_INSTALL_DIR=/usr/local/bin \
+  && cmake --build .                              \
+  && sudo make install                            \
+  && sudo ldconfig                                \
+  && sudo rm -fr /home/local/Vulkan-ValidationLayers
 
 WORKDIR /home/local/vk-gl-cts/build
 
