@@ -154,13 +154,13 @@ function cleanup {
     if [ "x$1" == "x0" ]; then
 	if $CDP_CLEAN; then
 	    if $CDP_RUN_PIGLIT; then
-		docker rmi igalia/mesa:piglit
+		docker rmi "$CDP_DOCKER_IMAGE":piglit
 	    fi
 	    if $CDP_RUN_GL_CTS; then
-		docker rmi igalia/mesa:gl-cts
+		docker rmi "$CDP_DOCKER_IMAGE":gl-cts
 	    fi
 	    if $CDP_RUN_VK_CTS; then
-		docker rmi igalia/mesa:vk-cts
+		docker rmi "$CDP_DOCKER_IMAGE":vk-cts
 	    fi
 	fi
     fi
@@ -283,8 +283,12 @@ function run_piglit_tests {
 
     git pull $CDP_PROGRESS_FLAG
 
+    if [ ! -z "$CDP_DOCKER_USER" ]; then
+       docker login -u "$CDP_DOCKER_USER" -p "$CDP_DOCKER_PASSWORD" "${CDP_DOCKER_IMAGE%%/*}"
+    fi
 
     if $CDP_RUN_PIGLIT; then
+	DOCKER_IMAGE="$CDP_DOCKER_IMAGE" \
 	rocker build --pull -f Rockerfile.piglit --var DEBUG=true --var FPR_BRANCH="${CDP_FPR_BRANCH}" --var TAG=piglit --var RELEASE="${CDP_RELEASE}"
 	CDP_TEST_SUITES="piglit $CDP_TEST_SUITES"
     fi
@@ -299,6 +303,7 @@ function run_piglit_tests {
 	git pull $CDP_PROGRESS_FLAG
 	cd -
 	cd $HOME
+	DOCKER_IMAGE="$CDP_DOCKER_IMAGE" \
 	rocker build --pull -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var DEBUG=true --var FPR_BRANCH="${CDP_FPR_BRANCH}" --var TAG=gl-cts --var RELEASE="${CDP_RELEASE}"
 	rm Rockerfile.vk-gl-cts
 	cd -
@@ -314,6 +319,7 @@ function run_piglit_tests {
 	git pull $CDP_PROGRESS_FLAG
 	cd -
 	cd $HOME
+	DOCKER_IMAGE="$CDP_DOCKER_IMAGE" \
 	rocker build --pull -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var DEBUG=true --var FPR_BRANCH="${CDP_FPR_BRANCH}" --var TAG=vk-cts --var RELEASE="${CDP_RELEASE}"
 	rm Rockerfile.vk-gl-cts
 	cd -
@@ -338,14 +344,14 @@ function run_piglit_tests {
 			docker run --privileged --rm -t -v "${CDP_PIGLIT_RESULTS_DIR}":/results:Z \
 			       -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
 			       -e FPR_EXTRA_ARGS="$CDP_EXTRA_ARGS" \
-			       -e GL_DRIVER="$corrected_driver" igalia/mesa:piglit
+			       -e GL_DRIVER="$corrected_driver" "$CDP_DOCKER_IMAGE":piglit
 		        ;;
 		    "xopengl" )
 			docker run --privileged --rm -t -v "${CDP_PIGLIT_RESULTS_DIR}":/results:Z \
 			       -e DISPLAY=unix$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
 			       -e FPR_EXTRA_ARGS="$CDP_EXTRA_ARGS" \
 			       -e CTS="$suite" \
-			       -e GL_DRIVER="$corrected_driver" igalia/mesa:gl-cts
+			       -e GL_DRIVER="$corrected_driver" "$CDP_DOCKER_IMAGE":gl-cts
 		        ;;
 		    "xvulkan" )
 			docker run --privileged --rm -t -v "${CDP_PIGLIT_RESULTS_DIR}":/results:Z \
@@ -353,7 +359,7 @@ function run_piglit_tests {
 			       -e FPR_EXTRA_ARGS="--vk-cts-all-concurrent $CDP_EXTRA_ARGS" \
 			       -e CTS="$suite" \
 			       -e VK_ICD_FILENAMES="$icd_filename" \
-			       -e GL_DRIVER="$corrected_driver" igalia/mesa:vk-cts
+			       -e GL_DRIVER="$corrected_driver" "$CDP_DOCKER_IMAGE":vk-cts
 		        ;;
 		    *)
 			apply_verbosity "$CDP_VERBOSITY"
@@ -398,6 +404,9 @@ Options:
   --run-piglit <branch>            Run against the piglit <branch>
   --fpr-branch <branch>            full-piglit-run.sh' <branch>
   --create-piglit-report           Create results report
+  --docker-image                   Docker base image.
+  --docker-user                    Docker user.
+  --docker-password                Docker password.
 
 HELP
 }
@@ -494,6 +503,24 @@ do
     --create-piglit-report)
 	CDP_CREATE_PIGLIT_REPORT=true
 	;;
+    # Docker base image
+    --docker-image)
+	check_option_args $1 $2
+	shift
+        CDP_DOCKER_IMAGE=$1
+	;;
+    # Docker user
+    --docker-user)
+	check_option_args $1 $2
+	shift
+        CDP_DOCKER_USER=$1
+	;;
+    # Docker password
+    --docker-password)
+	check_option_args $1 $2
+	shift
+        CDP_DOCKER_PASSWORD=$1
+	;;
     --*)
 	printf "%s\n" "Error: unknown option: $1" >&2
 	usage
@@ -530,9 +557,14 @@ CDP_RUN_GL_CTS="${CDP_RUN_GL_CTS:-false}"
 CDP_RUN_PIGLIT="${CDP_RUN_PIGLIT:-false}"
 
 # Which FPR branch to use?
-# -----------------------
+# ------------------------
 
 CDP_FPR_BRANCH="${CDP_FPR_BRANCH:-master}"
+
+# Docker settings
+# ---------------
+
+CDP_DOCKER_IMAGE="${CDP_DOCKER_IMAGE:-igalia/mesa}"
 
 # Verbose?
 # --------
