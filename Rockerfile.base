@@ -28,10 +28,12 @@ RUN apt-get update                                                              
     zlib1g-dev scons libelf-dev libxvmc-dev libvdpau-dev libva-dev libclc-dev ccache   \
     libpciaccess-dev libxxf86vm-dev python-setuptools python-wheel bzip2 make          \
     mesa-common-dev xutils-dev libexpat1-dev xz-utils libedit-dev libffi-dev           \
-    libxml2-dev libunwind-dev                                                          \
+    libxml2-dev libunwind-dev python3-setuptools python3-pip                          \
   && rm -fr /var/lib/apt/lists/*
 
 RUN pip install mako
+
+RUN pip3 install mako
 
 RUN adduser --gecos "" local && passwd -d local && adduser local sudo
 
