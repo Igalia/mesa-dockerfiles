@@ -44,7 +44,7 @@ FROM {{ $image }}:{{ .RELEASE }}
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
 RUN apt-get update                                                  \
-  && apt-get -y --no-install-recommends install cmake
+  && apt-get -y --no-install-recommends install cmake               \
   && rm -fr /var/lib/apt/lists/*
 
 # {{ .VIDEO_GID }} is the gid for outside's video group. Required to access to

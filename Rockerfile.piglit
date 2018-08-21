@@ -36,7 +36,7 @@ LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
 RUN apt-get update                                                      \
   && apt-get -y --no-install-recommends install cmake libwaffle-dev     \
-    libpng-dev libxkbcommon-dev libglu1-mesa-dev libegl1-mesa-dev
+    libpng-dev libxkbcommon-dev libglu1-mesa-dev libegl1-mesa-dev       \
   && rm -fr /var/lib/apt/lists/*
 
 USER local
