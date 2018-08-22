@@ -47,6 +47,8 @@ RUN apt-get update                                                  \
   && apt-get -y --no-install-recommends install cmake               \
   && rm -fr /var/lib/apt/lists/*
 
+RUN pip3 install six
+
 # {{ .VIDEO_GID }} is the gid for outside's video group. Required to access to
 # /dev/dri/renderD128
 RUN usermod -G {{ .VIDEO_GID }} -a local
