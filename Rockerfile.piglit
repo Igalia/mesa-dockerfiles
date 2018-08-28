@@ -37,6 +37,7 @@ LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 RUN apt-get update                                                      \
   && apt-get -y --no-install-recommends install cmake libwaffle-dev     \
     libpng-dev libxkbcommon-dev libglu1-mesa-dev libegl1-mesa-dev       \
+    python3-pip python3-setuptools python3-wheel                        \
   && rm -fr /var/lib/apt/lists/*
 
 RUN pip3 install numpy six
