@@ -40,7 +40,7 @@ RUN apt-get update                                                      \
     python3-pip python3-setuptools python3-wheel                        \
   && rm -fr /var/lib/apt/lists/*
 
-RUN pip3 install numpy six
+RUN pip3 install mako numpy six
 
 USER local
 

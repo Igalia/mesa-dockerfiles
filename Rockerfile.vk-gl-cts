@@ -48,7 +48,7 @@ RUN apt-get update                                                  \
     python3-pip python3-setuptools python3-wheel                    \
   && rm -fr /var/lib/apt/lists/*
 
-RUN pip3 install six
+RUN pip3 install mako six
 
 # {{ .VIDEO_GID }} is the gid for outside's video group. Required to access to
 # /dev/dri/renderD128
