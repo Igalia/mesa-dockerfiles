@@ -289,7 +289,7 @@ function run_piglit_tests {
 
     if $CDP_RUN_PIGLIT; then
 	DOCKER_IMAGE="$CDP_DOCKER_IMAGE" \
-	rocker build --pull -f Rockerfile.piglit --var DEBUG=true --var FPR_BRANCH="${CDP_FPR_BRANCH}" --var TAG=piglit --var RELEASE="${CDP_RELEASE}"
+	rocker build --pull -f Rockerfile.piglit --var DEBUG=true --var TEST_BRANCH="${CDP_PIGLIT_BRANCH}" --var FPR_BRANCH="${CDP_FPR_BRANCH}" --var TAG=piglit --var RELEASE="${CDP_RELEASE}"
 	CDP_TEST_SUITES="piglit $CDP_TEST_SUITES"
     fi
 
