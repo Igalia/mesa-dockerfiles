@@ -88,7 +88,6 @@ RUN python2 ../external/fetch_sources.py                                        
   && cmake .. -DDEQP_TARGET=x11_egl                                                \
               {{ if ne $debug_build "true" }} -DCMAKE_BUILD_TYPE=Release {{ end }} \
               {{ if .GTF }} -DGLCTS_GTF_TARGET={{ .GTF }} {{ end }}                \
-  && find . -name link.txt -exec sed -i "s/;-/ -/g" {} \;                          \
   && cmake --build .
 
 RUN git show --stat > /home/local/vk-gl-cts-head.txt
