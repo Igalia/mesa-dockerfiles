@@ -295,9 +295,6 @@ function run_piglit_tests {
 
     if $CDP_RUN_GL_CTS; then
 	cp Rockerfile.vk-gl-cts $HOME
-	cd $HOME/LoaderAndValidationLayers
-	git pull $CDP_PROGRESS_FLAG
-	cd -
 	cd $HOME/vk-gl-cts
 	git checkout $CDP_PROGRESS_FLAG $CDP_GL_CTS_BRANCH
 	git pull $CDP_PROGRESS_FLAG
@@ -311,9 +308,6 @@ function run_piglit_tests {
 
     if $CDP_RUN_VK_CTS; then
 	cp Rockerfile.vk-gl-cts $HOME
-	cd $HOME/LoaderAndValidationLayers
-	git pull $CDP_PROGRESS_FLAG
-	cd -
 	cd $HOME/vk-gl-cts
 	git checkout $CDP_PROGRESS_FLAG $CDP_VK_CTS_BRANCH
 	git pull $CDP_PROGRESS_FLAG
