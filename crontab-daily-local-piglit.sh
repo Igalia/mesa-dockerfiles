@@ -795,6 +795,7 @@ do
 	check_option_args $1 $2
 	shift
 	CDLP_VK_LOADER_PATH=$1
+	;;
     # PATH to the AOSP dEQP repository
     --aosp-deqp-path)
 	check_option_args $1 $2
