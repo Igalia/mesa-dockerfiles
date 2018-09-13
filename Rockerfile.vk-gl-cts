@@ -1,8 +1,7 @@
 #
 # This builds and installs Vulkan/OpenGL CTS.
 #
-# Ensure you have cloned vk-gl-cts, Vulkan-Headers and Vulkan-Loader
-# repositories.
+# Ensure you have cloned vk-gl-cts and Loaderandvalidationlayers repositories.
 #
 # ~~~
 #  rocker build -f Rockerfile.vk-gl-cts                                 \
@@ -79,29 +78,20 @@ RUN git clone --depth 1 https://github.com/Igalia/piglit.git -b wip/agomez/dcbak
 
 ADD vk-gl-cts /home/local/vk-gl-cts
 
-ADD Vulkan-Headers /home/local/Vulkan-Headers
+ADD LoaderAndValidationLayers /home/local/LoaderAndValidationLayers
 
-ADD Vulkan-Loader /home/local/Vulkan-Loader
+RUN sudo chown -R local:local /home/local/vk-gl-cts  /home/local/LoaderAndValidationLayers
 
-RUN sudo chown -R local:local /home/local/vk-gl-cts /home/local/Vulkan-Headers /home/local/Vulkan-Loader
+RUN mkdir /home/local/vk-gl-cts/build  /home/local/LoaderAndValidationLayers/build
 
-RUN mkdir /home/local/vk-gl-cts/build /home/local/Vulkan-Headers/build /home/local/Vulkan-Loader/build
+WORKDIR /home/local/LoaderAndValidationLayers/build
 
-WORKDIR /home/local/Vulkan-Headers/build
-
-RUN cmake ..           \
-  && cmake --build .   \
-  && sudo make install \
-  && sudo ldconfig     \
-  && sudo rm -fr /home/local/Vulkan-Headers
-
-WORKDIR /home/local/Vulkan-Loader/build
-
-RUN cmake .. -DBUILD_WSI_MIR_SUPPORT=OFF \
-  && cmake --build .                     \
-  && sudo make install                   \
-  && sudo ldconfig                       \
-  && sudo rm -fr /home/local/Vulkan-Loader
+RUN ../update_external_sources.sh                      \
+  && cmake .. -DBUILD_WSI_MIR_SUPPORT=OFF              \
+  && cmake --build .                                   \
+  && sudo make install                                 \
+  && sudo ldconfig                                     \
+  && sudo rm -fr /home/local/LoaderAndValidationLayers
 
 WORKDIR /home/local/vk-gl-cts/build
 

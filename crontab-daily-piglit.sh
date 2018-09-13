@@ -295,10 +295,7 @@ function run_piglit_tests {
 
     if $CDP_RUN_GL_CTS; then
 	cp Rockerfile.vk-gl-cts $HOME
-	cd $HOME/Vulkan-Headers
-	git pull $CDP_PROGRESS_FLAG
-	cd -
-	cd $HOME/Vulkan-Loader
+	cd $HOME/LoaderAndValidationLayers
 	git pull $CDP_PROGRESS_FLAG
 	cd -
 	cd $HOME/vk-gl-cts
@@ -314,10 +311,7 @@ function run_piglit_tests {
 
     if $CDP_RUN_VK_CTS; then
 	cp Rockerfile.vk-gl-cts $HOME
-	cd $HOME/Vulkan-Headers
-	git pull $CDP_PROGRESS_FLAG
-	cd -
-	cd $HOME/Vulkan-Loader
+	cd $HOME/LoaderAndValidationLayers
 	git pull $CDP_PROGRESS_FLAG
 	cd -
 	cd $HOME/vk-gl-cts
