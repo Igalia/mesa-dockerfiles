@@ -60,8 +60,9 @@ RUN hg clone https://hg.libsdl.org/SDL  \
   && sudo make install                  \
   && rm -fr ../SDL
 
-RUN git clone https://github.com/Novum/vkQuake  \
-  && cd vkQuake/Quake                           \
+RUN git clone https://github.com/Novum/vkQuake      \
+  && cd vkQuake/Quake                               \
+  && sed -i "s/vulkan_core.h/vulkan.h/g" quakedef.h \
   && make -j5
 
 WORKDIR /home/local/vkQuake/Quake
