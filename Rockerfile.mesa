@@ -166,7 +166,7 @@ RUN scons llvm=1               \
 RUN scons platform=windows toolchain=crossmingw
 
 {{ else if eq .BUILD "distcheck" }}
-RUN ./autogen.sh                            \
+RUN ./autogen.sh --enable-autotools         \
   && make distcheck                         \
   && __version=`cat VERSION`                \
   && mv VERSION /home/local/                \
@@ -178,7 +178,7 @@ RUN export LLVM={{ $llvm_version }}.0\
   && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_R600 ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,r600 ; fi                                                  \
   && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADEONSI ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,radeonsi ; fi                                          \
   && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_SWR ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,swr ; fi                                                    \
-  && ./autogen.sh --with-dri-drivers=""                                                                                                                         \
+  && ./autogen.sh --enable-autotools --with-dri-drivers=""                                                                                                      \
     --with-gallium-drivers=$GALLIUM_DRIVERS                                                                                                                     \
     {{ if ne $llvm_version "0.0" }} --enable-llvm --enable-llvm-shared-libs {{ end }}                                                                           \
     {{ if ne $debug_build "false" }} --enable-debug {{ end }}                                                                                                   \
@@ -200,7 +200,7 @@ RUN export LLVM={{ $llvm_version }}.0\
   && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_SWR ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,swr ; fi                                                    \
   && VULKAN_DRIVERS=intel                                                                                                                                       \
   && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADV ; then VULKAN_DRIVERS=$VULKAN_DRIVERS,radeon ; fi                                                  \
-  && ./autogen.sh --with-egl-platforms=x11,drm,wayland                                                                                                          \
+  && ./autogen.sh --enable-autotools --with-egl-platforms=x11,drm,wayland                                                                                       \
     --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                                                                                                     \
     --with-gallium-drivers=$GALLIUM_DRIVERS                                                                                                                     \
     --with-vulkan-drivers=$VULKAN_DRIVERS                                                                                                                       \
