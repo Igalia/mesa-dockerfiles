@@ -29,6 +29,10 @@ RUN git clone http://github.com/Igalia/piglit.git /home/local/piglit.git
 
 ENV vblank_mode=0
 
+ENV LD_LIBRARY_PATH=/usr/local/lib
+
+ENV LIBGL_DRIVERS_PATH=/usr/local/lib/dri/
+
 {{ if .TAG }}
 TAG {{ $image }}:{{ .TAG }}
 {{ end }}

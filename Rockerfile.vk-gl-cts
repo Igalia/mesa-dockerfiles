@@ -93,6 +93,7 @@ RUN mkdir /home/local/vk-gl-cts/build /home/local/Vulkan-Headers/build /home/loc
 WORKDIR /home/local/Vulkan-Headers/build
 
 RUN cmake ..           \
+  -DCMAKE_CXX_FLAGS="-m32" -DCMAKE_C_FLAGS="-m32" \
   && cmake --build .   \
   && sudo make install \
   && sudo ldconfig     \
@@ -101,6 +102,7 @@ RUN cmake ..           \
 WORKDIR /home/local/Vulkan-Loader/build
 
 RUN cmake .. -DBUILD_WSI_MIR_SUPPORT=OFF \
+  -DCMAKE_CXX_FLAGS="-m32" -DCMAKE_C_FLAGS="-m32" \
   && cmake --build .                     \
   && sudo make install                   \
   && sudo ldconfig                       \
@@ -114,6 +116,7 @@ ENV XDG_RUNTIME_DIR=/tmp
 
 RUN python2 ../external/fetch_sources.py                                           \
   && cmake .. -DDEQP_TARGET={{ $deqp_target }}                                     \
+              -DCMAKE_CXX_FLAGS="-m32" -DCMAKE_C_FLAGS="-m32"                      \
               {{ if ne $debug_build "true" }} -DCMAKE_BUILD_TYPE=Release {{ end }} \
               {{ if .GTF }} -DGLCTS_GTF_TARGET={{ .GTF }} {{ end }}                \
   && cmake --build .

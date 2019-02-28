@@ -29,7 +29,7 @@
 {{ $image := (or .Env.DOCKER_IMAGE "igalia/mesa") }}
 {{ $ccachedir := (or .Env.CCACHE_DIR "~/.ccache") }}
 
-FROM {{ $image }}:base
+FROM {{ $image }}:i386-base
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
@@ -53,4 +53,4 @@ RUN apt-get update                                                            \
   && rm -fr /var/lib/apt/lists/*
 {{ end }}
 
-TAG {{ $image }}:llvm-{{ .LLVM }}
+TAG {{ $image }}:i386-llvm-{{ .LLVM }}

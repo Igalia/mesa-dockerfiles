@@ -34,7 +34,7 @@ FROM ubuntu:xenial
 {{ else if eq $llvm_version "0.0" }}
 FROM {{ $image }}:base
 {{ else }}
-FROM {{ $image }}:llvm-{{ .LLVM }}
+FROM {{ $image }}:i386-llvm-{{ .LLVM }}
 {{ end }}
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
@@ -129,7 +129,7 @@ RUN export DRM_VERSION=`cat /home/local/mesa/configure.ac | egrep ^LIBDRM.*REQUI
   && tar -jxvf libdrm-$DRM_VERSION.tar.bz2                                                                               \
   && rm libdrm-$DRM_VERSION.tar.bz2                                                                                      \
   && cd libdrm-$DRM_VERSION                                                                                              \
-  && ./configure --enable-freedreno --enable-vc4 --enable-etnaviv-experimental-api                                       \
+  && ./configure --build=i386-pc-linux-gnu --host=x86_64-pc-linux-gnu --target=i386-pc-linux-gnu --enable-freedreno --enable-vc4 --enable-etnaviv-experimental-api                                       \
   && make                                                                                                                \
   && sudo make install                                                                                                   \
   && sudo ldconfig                                                                                                       \
@@ -200,7 +200,7 @@ RUN export LLVM={{ $llvm_version }}.0\
   && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_SWR ; then GALLIUM_DRIVERS=$GALLIUM_DRIVERS,swr ; fi                                                    \
   && VULKAN_DRIVERS=intel                                                                                                                                       \
   && if dpkg --compare-versions $LLVM ge $LLVM_REQUIRED_RADV ; then VULKAN_DRIVERS=$VULKAN_DRIVERS,radeon ; fi                                                  \
-  && ./autogen.sh --enable-autotools --with-egl-platforms=x11,drm,wayland                                                                                       \
+  && ./autogen.sh --build=i386-pc-linux-gnu --host=x86_64-pc-linux-gnu --target=i386-pc-linux-gnu --enable-autotools --with-egl-platforms=x11,drm,wayland                                                                                       \
     --with-dri-drivers=i915,i965,radeon,r200,swrast,nouveau                                                                                                     \
     --with-gallium-drivers=$GALLIUM_DRIVERS                                                                                                                     \
     --with-vulkan-drivers=$VULKAN_DRIVERS                                                                                                                       \

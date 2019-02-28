@@ -15,7 +15,7 @@
 {{ $image := (or .Env.DOCKER_IMAGE "igalia/mesa") }}
 {{ $ccachedir := (or .Env.CCACHE_DIR "~/.ccache") }}
 
-FROM ubuntu:xenial
+FROM i386/ubuntu:xenial
 
 LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
@@ -59,7 +59,7 @@ RUN wget https://xorg.freedesktop.org/releases/individual/proto/glproto-1.4.14.t
   && tar -jxvf glproto-1.4.14.tar.bz2                                                   \
   && rm glproto-1.4.14.tar.bz2                                                          \
   && cd glproto-1.4.14                                                                  \
-  && ./configure                                                                        \
+  && ./configure --build=i386-pc-linux-gnu --host=x86_64-pc-linux-gnu --target=i386-pc-linux-gnu \
   && make                                                                               \
   && sudo make install                                                                  \
   && sudo ldconfig                                                                      \
@@ -69,7 +69,7 @@ RUN wget https://xorg.freedesktop.org/releases/individual/proto/dri2proto-2.8.ta
   && tar -jxvf dri2proto-2.8.tar.bz2                                                    \
   && rm dri2proto-2.8.tar.bz2                                                           \
   && cd dri2proto-2.8                                                                   \
-  && ./configure                                                                        \
+  && ./configure --build=i386-pc-linux-gnu --host=x86_64-pc-linux-gnu --target=i386-pc-linux-gnu \
   && make                                                                               \
   && sudo make install                                                                  \
   && sudo ldconfig                                                                      \
@@ -79,7 +79,7 @@ RUN wget https://xorg.freedesktop.org/releases/individual/proto/dri3proto-1.0.ta
   && tar -jxvf dri3proto-1.0.tar.bz2                                                    \
   && rm dri3proto-1.0.tar.bz2                                                           \
   && cd dri3proto-1.0                                                                   \
-  && ./configure                                                                        \
+  && ./configure --build=i386-pc-linux-gnu --host=x86_64-pc-linux-gnu --target=i386-pc-linux-gnu \
   && make                                                                               \
   && sudo make install                                                                  \
   && sudo ldconfig                                                                      \
@@ -89,7 +89,7 @@ RUN wget https://xorg.freedesktop.org/releases/individual/proto/presentproto-1.0
   && tar -jxvf presentproto-1.0.tar.bz2                                                  \
   && rm presentproto-1.0.tar.bz2                                                         \
   && cd presentproto-1.0                                                                 \
-  && ./configure                                                                         \
+  && ./configure --build=i386-pc-linux-gnu --host=x86_64-pc-linux-gnu --target=i386-pc-linux-gnu \
   && make                                                                                \
   && sudo make install                                                                   \
   && sudo ldconfig                                                                       \
@@ -99,7 +99,7 @@ RUN wget https://xcb.freedesktop.org/dist/xcb-proto-1.13.tar.bz2                
   && tar -jxvf xcb-proto-1.13.tar.bz2                                                    \
   && rm xcb-proto-1.13.tar.bz2                                                           \
   && cd xcb-proto-1.13                                                                   \
-  && ./configure                                                                         \
+  && ./configure --build=i386-pc-linux-gnu --host=x86_64-pc-linux-gnu --target=i386-pc-linux-gnu \
   && make                                                                                \
   && sudo make install                                                                   \
   && sudo ldconfig                                                                       \
@@ -109,7 +109,7 @@ RUN wget https://xcb.freedesktop.org/dist/libxcb-1.13.tar.bz2                   
   && tar -jxvf libxcb-1.13.tar.bz2                                                       \
   && rm libxcb-1.13.tar.bz2                                                              \
   && cd libxcb-1.13                                                                      \
-  && ./configure                                                                         \
+  && ./configure --build=i386-pc-linux-gnu --host=x86_64-pc-linux-gnu --target=i386-pc-linux-gnu \
   && make                                                                                \
   && sudo make install                                                                   \
   && sudo ldconfig                                                                       \
@@ -119,7 +119,7 @@ RUN wget https://xorg.freedesktop.org//releases/individual/proto/renderproto-0.1
   && tar -jxvf renderproto-0.11.1.tar.bz2                                                   \
   && rm renderproto-0.11.1.tar.bz2                                                          \
   && cd renderproto-0.11.1                                                                  \
-  && ./configure                                                                            \
+  && ./configure --build=i386-pc-linux-gnu --host=x86_64-pc-linux-gnu --target=i386-pc-linux-gnu \
   && make                                                                                   \
   && sudo make install                                                                      \
   && sudo ldconfig                                                                          \
@@ -129,7 +129,7 @@ RUN wget https://xorg.freedesktop.org/releases/individual/lib/libXrender-0.9.10.
   && tar -jxvf libXrender-0.9.10.tar.bz2                                                \
   && rm libXrender-0.9.10.tar.bz2                                                       \
   && cd libXrender-0.9.10                                                               \
-  && ./configure                                                                        \
+  && ./configure --build=i386-pc-linux-gnu --host=x86_64-pc-linux-gnu --target=i386-pc-linux-gnu --enable-malloc0returnsnull \
   && make                                                                               \
   && sudo make install                                                                  \
   && sudo ldconfig                                                                      \
@@ -139,7 +139,7 @@ RUN wget https://xorg.freedesktop.org/releases/individual/proto/randrproto-1.3.0
   && tar -jxvf randrproto-1.3.0.tar.bz2                                                  \
   && rm randrproto-1.3.0.tar.bz2                                                         \
   && cd randrproto-1.3.0                                                                 \
-  && ./configure                                                                         \
+  && ./configure --build=i386-pc-linux-gnu --host=x86_64-pc-linux-gnu --target=i386-pc-linux-gnu \
   && make                                                                                \
   && sudo make install                                                                   \
   && sudo ldconfig                                                                       \
@@ -149,7 +149,7 @@ RUN wget https://xorg.freedesktop.org/releases/individual/lib/libXrandr-1.3.0.ta
   && tar -jxvf libXrandr-1.3.0.tar.bz2                                                  \
   && rm libXrandr-1.3.0.tar.bz2                                                         \
   && cd libXrandr-1.3.0                                                                 \
-  && ./configure                                                                        \
+  && ./configure --build=i386-pc-linux-gnu --host=x86_64-pc-linux-gnu --target=i386-pc-linux-gnu --enable-malloc0returnsnull \
   && make                                                                               \
   && sudo make install                                                                  \
   && sudo ldconfig                                                                      \
@@ -159,7 +159,7 @@ RUN wget https://xorg.freedesktop.org/releases/individual/lib/libxshmfence-1.1.t
   && tar -jxvf libxshmfence-1.1.tar.bz2                                                 \
   && rm libxshmfence-1.1.tar.bz2                                                        \
   && cd libxshmfence-1.1                                                                \
-  && ./configure                                                                        \
+  && ./configure --build=i386-pc-linux-gnu --host=x86_64-pc-linux-gnu --target=i386-pc-linux-gnu \
   && make                                                                               \
   && sudo make install                                                                  \
   && sudo ldconfig                                                                      \
@@ -171,7 +171,7 @@ RUN wget https://people.freedesktop.org/~cbrill/libtxc_dxtn/libtxc_dxtn-1.0.1.ta
   && tar -jxvf libtxc_dxtn-1.0.1.tar.bz2                                                \
   && rm libtxc_dxtn-1.0.1.tar.bz2                                                       \
   && cd libtxc_dxtn-1.0.1                                                               \
-  && ./configure                                                                        \
+  && ./configure --build=i386-pc-linux-gnu --host=x86_64-pc-linux-gnu --target=i386-pc-linux-gnu \
   && make                                                                               \
   && sudo make install                                                                  \
   && sudo ldconfig                                                                      \
@@ -183,7 +183,7 @@ RUN wget https://wayland.freedesktop.org/releases/wayland-1.15.0.tar.xz         
   && tar -Jxvf wayland-1.15.0.tar.xz                                                    \
   && rm wayland-1.15.0.tar.xz                                                           \
   && cd wayland-1.15.0                                                                  \
-  && ./configure --disable-documentation                                                \
+  && ./configure --build=i386-pc-linux-gnu --host=x86_64-pc-linux-gnu --target=i386-pc-linux-gnu --disable-documentation \
   && make                                                                               \
   && sudo make install                                                                  \
   && sudo ldconfig                                                                      \
@@ -193,7 +193,7 @@ RUN wget https://wayland.freedesktop.org/releases/wayland-protocols-1.14.tar.xz 
   && tar -Jxvf wayland-protocols-1.14.tar.xz                                            \
   && rm wayland-protocols-1.14.tar.xz                                                   \
   && cd wayland-protocols-1.14                                                          \
-  && ./configure                                                                        \
+  && ./configure --build=i386-pc-linux-gnu --host=x86_64-pc-linux-gnu --target=i386-pc-linux-gnu \
   && make                                                                               \
   && sudo make install                                                                  \
   && sudo ldconfig                                                                      \
@@ -201,4 +201,4 @@ RUN wget https://wayland.freedesktop.org/releases/wayland-protocols-1.14.tar.xz 
 
 USER root
 
-TAG {{ $image }}:base
+TAG {{ $image }}:i386-base

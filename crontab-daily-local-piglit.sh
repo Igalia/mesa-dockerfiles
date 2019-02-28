@@ -236,20 +236,20 @@ function build_mesa() {
 	test $? -eq 0 && return 0
     fi
 
-    wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/cts/Rockerfile.mesa
+    wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/32bits/Rockerfile.mesa
     # make check is failing right now and we don't really need it
     sed -e 's/&& make check//g' -i Rockerfile.mesa
 
     __CDLP_OLD_DOCKER_IMAGE="$DOCKER_IMAGE"
     DOCKER_IMAGE="igalia/mesa"
 
-    rocker build --pull -f Rockerfile.mesa --var BUILD="autotools" --var LLVM="5.0" --var CLEAN=false --var DEBUG="$CDLP_DEBUG" --var TAG=mesa."$CDLP_MESA_COMMIT"
+    rocker build --pull -f Rockerfile.mesa --var BUILD="autotools" --var LLVM="5.0" --var CLEAN=false --var DEBUG="$CDLP_DEBUG" --var TAG=i386-mesa."$CDLP_MESA_COMMIT"
     popd
 
     if [ ! -z "$CDLP_DOCKER_REPOSITORY" ]; then
-	docker tag "$DOCKER_IMAGE":mesa."$CDLP_MESA_COMMIT" "$CDLP_DOCKER_REPOSITORY":mesa."$CDLP_MESA_COMMIT"
-	docker rmi "$DOCKER_IMAGE":mesa."$CDLP_MESA_COMMIT"
-	docker push "$CDLP_DOCKER_REPOSITORY":mesa."$CDLP_MESA_COMMIT"
+	docker tag "$DOCKER_IMAGE":i386-mesa."$CDLP_MESA_COMMIT" "$CDLP_DOCKER_REPOSITORY":i386-mesa."$CDLP_MESA_COMMIT"
+	docker rmi "$DOCKER_IMAGE":i386-mesa."$CDLP_MESA_COMMIT"
+	docker push "$CDLP_DOCKER_REPOSITORY":i386-mesa."$CDLP_MESA_COMMIT"
     fi
 
     DOCKER_IMAGE="$__CDLP_OLD_DOCKER_IMAGE"
@@ -332,12 +332,12 @@ function build_vk_gl_cts() {
     fi
     popd
     pushd "$CDLP_TEMP_PATH"
-    wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/cts/Rockerfile.vk-gl-cts
-    DOCKER_IMAGE="$DOCKER_IMAGE" rocker build -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var FPR_BRANCH="$CDLP_FPR_BRANCH" --var TARGET="$CDLP_VK_GL_CTS_TARGET" --var DEBUG="$CDLP_DEBUG" --var TAG=vk-gl-cts."$1" --var RELEASE=mesa."$CDLP_MESA_COMMIT"${CDLP_GL_CTS_GTF:+ --var GTF=}"$CDLP_GL_CTS_GTF"
+    wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/32bits/Rockerfile.vk-gl-cts
+    DOCKER_IMAGE="$DOCKER_IMAGE" rocker build -f Rockerfile.vk-gl-cts --var VIDEO_GID=`getent group video | cut -f3 -d:` --var FPR_BRANCH="$CDLP_FPR_BRANCH" --var TARGET="$CDLP_VK_GL_CTS_TARGET" --var DEBUG="$CDLP_DEBUG" --var TAG=i386-vk-gl-cts."$1" --var RELEASE=i386-mesa."$CDLP_MESA_COMMIT"${CDLP_GL_CTS_GTF:+ --var GTF=}"$CDLP_GL_CTS_GTF"
     popd
 
     if [ ! -z "$CDLP_DOCKER_REPOSITORY" ]; then
-	docker push "$DOCKER_IMAGE":vk-gl-cts."$1"
+	docker push "$DOCKER_IMAGE":i386-vk-gl-cts."$1"
     fi
 
     mv "$CDLP_TEMP_PATH/Vulkan-Headers" "$CDLP_TEMP_PATH/Vulkan-Headers.$1"
@@ -439,7 +439,7 @@ function build_aosp_deqp() {
     git branch -D old
     popd
     pushd "$CDLP_TEMP_PATH"
-    wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/cts/Rockerfile.deqp
+    wget $CDLP_PROGRESS_FLAG https://raw.githubusercontent.com/Igalia/mesa-dockerfiles/32bits/Rockerfile.deqp
     DOCKER_IMAGE="$DOCKER_IMAGE" rocker build -f Rockerfile.deqp --var VIDEO_GID=`getent group video | cut -f3 -d:` --var FPR_BRANCH="$CDLP_FPR_BRANCH" --var DEBUG="$CDLP_DEBUG" --var TAG=aosp-deqp."$1" --var RELEASE=mesa."$CDLP_MESA_COMMIT"
     popd
 
