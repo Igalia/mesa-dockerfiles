@@ -116,7 +116,7 @@ fi
 RCR_DOCKER_TAG="vk-gl-cts.$1.cl.base"
 
 if [ x$2 != "xpiglit" ]; then
-    RCR_DOCKER_RUN_COMMAND="$RCR_DOCKER_RUN_COMMAND cd external/openglcts/modules/; mkdir -p /results/cts-runner/\$RCR_CTS_RUNNER_TYPE-\$TIMESTAMP; ./cts-runner --type=\$RCR_CTS_RUNNER_TYPE --logdir=/results/cts-runner/\$RCR_CTS_RUNNER_TYPE-\$TIMESTAMP;"
+    RCR_DOCKER_RUN_COMMAND="$RCR_DOCKER_RUN_COMMAND cd external/openglcts/modules/; mkdir -p /results/cts-runner/\$RCR_CTS_RUNNER_TYPE-\$TIMESTAMP; INTEL_PRECISE_TRIG=1 vblank_mode=0 ./cts-runner --type=\$RCR_CTS_RUNNER_TYPE --logdir=/results/cts-runner/\$RCR_CTS_RUNNER_TYPE-\$TIMESTAMP;"
 fi
 
 docker pull "$RCR_DOCKER_REPOSITORY":"$RCR_DOCKER_TAG" && \

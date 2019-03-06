@@ -27,8 +27,6 @@ USER local
 
 RUN git clone http://github.com/Igalia/piglit.git /home/local/piglit.git
 
-ENV vblank_mode=0
-
 {{ if .TAG }}
 TAG {{ $image }}:{{ .TAG }}
 {{ end }}
