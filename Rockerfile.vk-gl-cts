@@ -7,6 +7,7 @@
 # ~~~
 #  rocker build -f Rockerfile.vk-gl-cts                                                                        \
 #    --var VIDEO_GID=`getent group video | cut -f3 -d:`                                                        \
+#    --var RENDER_GID=`getent group render | cut -f3 -d:`                                                      \
 #    [--var DEBUG=true]         # true, false                                                                  \
 #    [--var FPR_BRANCH=master]  # master, test/mesa-17.3, ...                                                  \
 #    [--var TAG=vk-gl-cts]      # vk-gl-cts-17.0, vk-gl-cts-13.0, ...                                          \
@@ -48,29 +49,33 @@ LABEL maintainer "Juan A. Suarez Romero <jasuarez@igalia.com>"
 
 RUN apt-get update                                                  \
   && apt-get -y --no-install-recommends install cmake               \
-    python3-pip python3-setuptools python3-wheel                    \
+    python python2.7 python3-pip python3-setuptools python3-wheel          \
     {{ if eq $deqp_target "wayland" }}weston{{ end }}               \
   && rm -fr /var/lib/apt/lists/*
 
 RUN pip3 install mako six
 
-# {{ .VIDEO_GID }} is the gid for outside's video group. Required to access to
-# /dev/dri/renderD128
-RUN usermod -G {{ .VIDEO_GID }} -a local
+# {{ .VIDEO_GID }} is the gid for outside's render group. Required to
+# access to /dev/dri/renderD128
+RUN usermod -G {{ .VIDEO_GID }} -a mesa
 
-USER local
+# {{ .RENDER_GID }} is the gid for outside's render group. Required to
+# access to /dev/dri/renderD128
+#RUN usermod -G {{ .RENDER_GID }} -a mesa
+
+USER mesa
 
 {{ if .Env.MAKEFLAGS }}
 ENV MAKEFLAGS={{ .Env.MAKEFLAGS }}
 {{ end }}
 
-MOUNT {{ $ccachedir }}:/home/local/.ccache:Z
+MOUNT {{ $ccachedir }}:/home/mesa/.ccache:Z
 
-RUN sudo chown -R local:local /home/local/.ccache
+RUN sudo chown -R mesa:mesa /home/mesa/.ccache
 
 ENV PATH=/usr/lib/ccache:$PATH
 
-WORKDIR /home/local
+WORKDIR /home/mesa
 
 RUN wget -c https://raw.githubusercontent.com/tanty/mesa-resources/{{ $fpr }}/testing/full-piglit-run.sh
 
@@ -78,51 +83,51 @@ RUN chmod +x full-piglit-run.sh
 
 RUN wget -c https://raw.githubusercontent.com/tanty/mesa-resources/{{ $fpr }}/testing/f-p-r-patterns.txt
 
-RUN git clone --depth 1 https://github.com/Igalia/piglit.git -b wip/agomez/dcbaker-deqp-group-at-a-time-_-khr-gl45 /home/local/igalia-piglit
+RUN git clone --depth 1 https://github.com/Igalia/piglit.git -b wip/agomez/dcbaker-deqp-group-at-a-time-_-khr-gl45 /home/mesa/igalia-piglit
 
-ADD vk-gl-cts /home/local/vk-gl-cts
+ADD vk-gl-cts /home/mesa/vk-gl-cts
 
-ADD Vulkan-Headers /home/local/Vulkan-Headers
+ADD Vulkan-Headers /home/mesa/Vulkan-Headers
 
-ADD Vulkan-Loader /home/local/Vulkan-Loader
+ADD Vulkan-Loader /home/mesa/Vulkan-Loader
 
-RUN sudo chown -R local:local /home/local/vk-gl-cts /home/local/Vulkan-Headers /home/local/Vulkan-Loader
+RUN sudo chown -R mesa:mesa /home/mesa/vk-gl-cts /home/mesa/Vulkan-Headers /home/mesa/Vulkan-Loader
 
-RUN mkdir /home/local/vk-gl-cts/build /home/local/Vulkan-Headers/build /home/local/Vulkan-Loader/build
+RUN mkdir /home/mesa/vk-gl-cts/build /home/mesa/Vulkan-Headers/build /home/mesa/Vulkan-Loader/build
 
-WORKDIR /home/local/Vulkan-Headers/build
+WORKDIR /home/mesa/Vulkan-Headers/build
 
 RUN cmake ..           \
   && cmake --build .   \
   && sudo make install \
   && sudo ldconfig     \
-  && sudo rm -fr /home/local/Vulkan-Headers
+  && sudo rm -fr /home/mesa/Vulkan-Headers
 
-WORKDIR /home/local/Vulkan-Loader/build
+WORKDIR /home/mesa/Vulkan-Loader/build
 
 RUN cmake .. -DBUILD_WSI_MIR_SUPPORT=OFF \
   && cmake --build .                     \
   && sudo make install                   \
   && sudo ldconfig                       \
-  && sudo rm -fr /home/local/Vulkan-Loader
+  && sudo rm -fr /home/mesa/Vulkan-Loader
 
-WORKDIR /home/local/vk-gl-cts/build
+WORKDIR /home/mesa/vk-gl-cts/build
 
 {{ if eq $deqp_target "wayland" }}
 ENV XDG_RUNTIME_DIR=/tmp
 {{ end }}
 
-RUN python2 ../external/fetch_sources.py                                           \
-  && cmake .. -DDEQP_TARGET={{ $deqp_target }}                                     \
+RUN python2.7 ../external/fetch_sources.py                                         \
+  && cmake .. -G Ninja -DDEQP_TARGET={{ $deqp_target }}                            \
               {{ if ne $debug_build "true" }} -DCMAKE_BUILD_TYPE=Release {{ end }} \
               {{ if .GTF }} -DGLCTS_GTF_TARGET={{ .GTF }} {{ end }}                \
   && cmake --build .
 
-RUN git show --stat > /home/local/vk-gl-cts-head.txt
+RUN git show --stat > /home/mesa/vk-gl-cts-head.txt
 
 VOLUME /results
 
-CMD "/bin/sh" "-c" "cp /home/local/*head.txt /results && CTS_SUITE=\"--run-gl-cts\" && if test \"x\$TARGET\" = \"xwayland\"; then weston > /tmp/weston.log & sleep 5 fi && if test \"x\$CTS\" = \"xvulkan\"; then CTS_SUITE=\"--run-vk-cts\"; fi && export MESA_COMMIT=\$(grep commit /home/local/mesa-head.txt | cut -d \" \" -f 2) && /home/local/full-piglit-run.sh \$FPR_EXTRA_ARGS \$CTS_SUITE --base-path /home/local --piglit-path /home/local/igalia-piglit --vk-gl-cts-path /home/local/vk-gl-cts/build --piglit-results-path /results --driver \$GL_DRIVER --commit \$MESA_COMMIT"
+CMD "/bin/sh" "-c" "cp /home/mesa/*head.txt /results && CTS_SUITE=\"--run-gl-cts\" && if test \"x\$TARGET\" = \"xwayland\"; then weston > /tmp/weston.log & sleep 5 fi && if test \"x\$CTS\" = \"xvulkan\"; then CTS_SUITE=\"--run-vk-cts\"; fi && export MESA_COMMIT=\$(grep commit /home/mesa/mesa-head.txt | cut -d \" \" -f 2) && /home/mesa/full-piglit-run.sh \$FPR_EXTRA_ARGS \$CTS_SUITE --base-path /home/mesa --piglit-path /home/mesa/igalia-piglit --vk-gl-cts-path /home/mesa/vk-gl-cts/build --piglit-results-path /results --driver \$GL_DRIVER --commit \$MESA_COMMIT"
 
 {{ if .TAG }}
 TAG {{ $image }}:{{ .TAG }}

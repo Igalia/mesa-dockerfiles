@@ -23,9 +23,9 @@ RUN apt-get update                                                  \
   && apt-get -y --no-install-recommends install ssh less nano       \
   && rm -fr /var/lib/apt/lists/*
 
-USER local
+USER mesa
 
-RUN git clone http://github.com/Igalia/piglit.git /home/local/piglit.git
+RUN git clone http://github.com/Igalia/piglit.git /home/mesa/piglit.git
 
 {{ if .TAG }}
 TAG {{ $image }}:{{ .TAG }}
