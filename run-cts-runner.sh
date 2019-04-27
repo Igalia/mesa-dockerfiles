@@ -91,7 +91,7 @@ apply_verbosity "$RCR_VERBOSITY"
 # ---
 
 
-RCR_DOCKER_REPOSITORY="baltix.local.igalia.com:5000/mesa"
+RCR_DOCKER_REPOSITORY="${RCR_DOCKER_REPOSITORY:-baltix.local.igalia.com:5000/mesa}"
 
 RCR_DOCKER_RUN_COMMAND="TIMESTAMP=`date +%Y%m%d%H%M%S`;"
 
@@ -103,26 +103,26 @@ if [[ $1 == opengl-es* ]]; then
     RCR_CTS_RUNNER_TYPE="es32"
     RCR_DOCKER_RUN_COMMAND="$RCR_DOCKER_RUN_COMMAND weston > /tmp/weston.log & sleep 5; export MESA_GLES_VERSION_OVERRIDE=3.2;"
     if [ x$2 == "xpiglit" ]; then
-	RCR_DOCKER_RUN_COMMAND="$RCR_DOCKER_RUN_COMMAND PIGLIT_KHR_GLES_BIN=/home/local/vk-gl-cts/build/external/openglcts/modules/glcts /home/local/piglit.git/piglit run khr_gles -n GLES-CTS-KHR-i965-\$TIMESTAMP /results/results/GLES-CTS-KHR-i965-\$TIMESTAMP; PIGLIT_KHR_NOCTX_BIN=/home/local/vk-gl-cts/build/external/openglcts/modules/glcts /home/local/piglit.git/piglit run khr_noctx -n NOCTX-CTS-KHR-i965-\$TIMESTAMP /results/results/NOCTX-CTS-KHR-i965-\$TIMESTAMP; PIGLIT_GTF_GLES_BIN=/home/local/vk-gl-cts/build/external/openglcts/modules/glcts /home/local/piglit.git/piglit run gtf_gles -n GLES-CTS-GTF-i965-\$TIMESTAMP /results/results/GLES-CTS-GTF-i965-\$TIMESTAMP; PIGLIT_DEQP_GLES2_BIN=/home/local/vk-gl-cts/build/external/openglcts/modules/glcts /home/local/piglit.git/piglit run deqp_gles2 -n GLES2-CTS-DEQP-i965-\$TIMESTAMP /results/results/GLES2-CTS-DEQP-i965-\$TIMESTAMP; PIGLIT_DEQP_GLES3_BIN=/home/local/vk-gl-cts/build/external/openglcts/modules/glcts /home/local/piglit.git/piglit run deqp_gles3 -n GLES3-CTS-DEQP-i965-\$TIMESTAMP /results/results/GLES3-CTS-DEQP-i965-\$TIMESTAMP; PIGLIT_DEQP_GLES31_BIN=/home/local/vk-gl-cts/build/external/openglcts/modules/glcts /home/local/piglit.git/piglit run deqp_gles31 -n GLES31-CTS-DEQP-i965-\$TIMESTAMP /results/results/GLES31-CTS-DEQP-i965-\$TIMESTAMP; PIGLIT_DEQP_EGL_BIN=/home/local/vk-gl-cts/build/external/openglcts/modules/glcts /home/local/piglit.git/piglit run deqp_egl -n EGL-CTS-DEQP-i965-\$TIMESTAMP /results/results/EGL-CTS-DEQP-i965-\$TIMESTAMP; for i in GLES-CTS-KHR-i965-\$TIMESTAMP NOCTX-CTS-KHR-i965-\$TIMESTAMP GLES-CTS-GTF-i965-\$TIMESTAMP GLES2-CTS-DEQP-i965-\$TIMESTAMP GLES3-CTS-DEQP-i965-\$TIMESTAMP GLES31-CTS-DEQP-i965-\$TIMESTAMP EGL-CTS-DEQP-i965-\$TIMESTAMP; do /home/local/piglit.git/piglit summary html -e pass /results/summary/\$i /results/results/\$i; done;"
+	RCR_DOCKER_RUN_COMMAND="$RCR_DOCKER_RUN_COMMAND PIGLIT_KHR_GLES_BIN=/home/mesa/vk-gl-cts_build/external/openglcts/modules/glcts /home/mesa/piglit.git/piglit run khr_gles -n GLES-CTS-KHR-i965-\$TIMESTAMP /results/results/GLES-CTS-KHR-i965-\$TIMESTAMP; PIGLIT_KHR_NOCTX_BIN=/home/mesa/vk-gl-cts_build/external/openglcts/modules/glcts /home/mesa/piglit.git/piglit run khr_noctx -n NOCTX-CTS-KHR-i965-\$TIMESTAMP /results/results/NOCTX-CTS-KHR-i965-\$TIMESTAMP; PIGLIT_GTF_GLES_BIN=/home/mesa/vk-gl-cts_build/external/openglcts/modules/glcts /home/mesa/piglit.git/piglit run gtf_gles -n GLES-CTS-GTF-i965-\$TIMESTAMP /results/results/GLES-CTS-GTF-i965-\$TIMESTAMP; PIGLIT_DEQP_GLES2_BIN=/home/mesa/vk-gl-cts_build/external/openglcts/modules/glcts /home/mesa/piglit.git/piglit run deqp_gles2 -n GLES2-CTS-DEQP-i965-\$TIMESTAMP /results/results/GLES2-CTS-DEQP-i965-\$TIMESTAMP; PIGLIT_DEQP_GLES3_BIN=/home/mesa/vk-gl-cts_build/external/openglcts/modules/glcts /home/mesa/piglit.git/piglit run deqp_gles3 -n GLES3-CTS-DEQP-i965-\$TIMESTAMP /results/results/GLES3-CTS-DEQP-i965-\$TIMESTAMP; PIGLIT_DEQP_GLES31_BIN=/home/mesa/vk-gl-cts_build/external/openglcts/modules/glcts /home/mesa/piglit.git/piglit run deqp_gles31 -n GLES31-CTS-DEQP-i965-\$TIMESTAMP /results/results/GLES31-CTS-DEQP-i965-\$TIMESTAMP; PIGLIT_DEQP_EGL_BIN=/home/mesa/vk-gl-cts_build/external/openglcts/modules/glcts /home/mesa/piglit.git/piglit run deqp_egl -n EGL-CTS-DEQP-i965-\$TIMESTAMP /results/results/EGL-CTS-DEQP-i965-\$TIMESTAMP; for i in GLES-CTS-KHR-i965-\$TIMESTAMP NOCTX-CTS-KHR-i965-\$TIMESTAMP GLES-CTS-GTF-i965-\$TIMESTAMP GLES2-CTS-DEQP-i965-\$TIMESTAMP GLES3-CTS-DEQP-i965-\$TIMESTAMP GLES31-CTS-DEQP-i965-\$TIMESTAMP EGL-CTS-DEQP-i965-\$TIMESTAMP; do /home/mesa/piglit.git/piglit summary html -e pass /results/summary/\$i /results/results/\$i; done;"
     fi
 else
     RCR_CTS_RUNNER_TYPE="gl46"
     RCR_DOCKER_RUN_COMMAND="$RCR_DOCKER_RUN_COMMAND export MESA_GLSL_VERSION_OVERRIDE=460; export MESA_GL_VERSION_OVERRIDE=4.6;"
     if [ x$2 == "xpiglit" ]; then
-	RCR_DOCKER_RUN_COMMAND="$RCR_DOCKER_RUN_COMMAND PIGLIT_KHR_GL_BIN=/home/local/vk-gl-cts/build/external/openglcts/modules/glcts /home/local/piglit.git/piglit run khr_gl -t GL46 -n GL-CTS-KHR-i965-\$TIMESTAMP /results/results/GL-CTS-KHR-i965-\$TIMESTAMP; PIGLIT_KHR_NOCTX_BIN=/home/local/vk-gl-cts/build/external/openglcts/modules/glcts /home/local/piglit.git/piglit run khr_noctx -n NOCTX-CTS-KHR-i965-\$TIMESTAMP /results/results/NOCTX-CTS-KHR-i965-\$TIMESTAMP; PIGLIT_GTF_GL_BIN=/home/local/vk-gl-cts/build/external/openglcts/modules/glcts /home/local/piglit.git/piglit run gtf_gl -n GL-CTS-GTF-i965-\$TIMESTAMP /results/results/GL-CTS-GTF-i965-\$TIMESTAMP; PIGLIT_DEQP_EGL_BIN=/home/local/vk-gl-cts/build/external/openglcts/modules/glcts /home/local/piglit.git/piglit run deqp_egl -n EGL-CTS-DEQP-i965-\$TIMESTAMP /results/results/EGL-CTS-DEQP-i965-\$TIMESTAMP; for i in GL-CTS-KHR-i965-\$TIMESTAMP NOCTX-CTS-KHR-i965-\$TIMESTAMP GL-CTS-GTF-i965-\$TIMESTAMP EGL-CTS-DEQP-i965-\$TIMESTAMP; do /home/local/piglit.git/piglit summary html -e pass /results/summary/\$i /results/results/\$i; done;"
+	RCR_DOCKER_RUN_COMMAND="$RCR_DOCKER_RUN_COMMAND PIGLIT_KHR_GL_BIN=/home/mesa/vk-gl-cts_build/external/openglcts/modules/glcts /home/mesa/piglit.git/piglit run khr_gl -t GL46 -n GL-CTS-KHR-i965-\$TIMESTAMP /results/results/GL-CTS-KHR-i965-\$TIMESTAMP; PIGLIT_KHR_NOCTX_BIN=/home/mesa/vk-gl-cts_build/external/openglcts/modules/glcts /home/mesa/piglit.git/piglit run khr_noctx -n NOCTX-CTS-KHR-i965-\$TIMESTAMP /results/results/NOCTX-CTS-KHR-i965-\$TIMESTAMP; PIGLIT_GTF_GL_BIN=/home/mesa/vk-gl-cts_build/external/openglcts/modules/glcts /home/mesa/piglit.git/piglit run gtf_gl -n GL-CTS-GTF-i965-\$TIMESTAMP /results/results/GL-CTS-GTF-i965-\$TIMESTAMP; PIGLIT_DEQP_EGL_BIN=/home/mesa/vk-gl-cts_build/external/openglcts/modules/glcts /home/mesa/piglit.git/piglit run deqp_egl -n EGL-CTS-DEQP-i965-\$TIMESTAMP /results/results/EGL-CTS-DEQP-i965-\$TIMESTAMP; for i in GL-CTS-KHR-i965-\$TIMESTAMP NOCTX-CTS-KHR-i965-\$TIMESTAMP GL-CTS-GTF-i965-\$TIMESTAMP EGL-CTS-DEQP-i965-\$TIMESTAMP; do /home/mesa/piglit.git/piglit summary html -e pass /results/summary/\$i /results/results/\$i; done;"
     fi
 fi
 
-RCR_DOCKER_TAG="vk-gl-cts.$1.cl.base"
+RCR_DOCKER_TAG="gl-cts-testing-opengl-cts-4-6-0__gl-cts-testing-$1"
 
 if [ x$2 != "xpiglit" ]; then
-    RCR_DOCKER_RUN_COMMAND="$RCR_DOCKER_RUN_COMMAND cd external/openglcts/modules/; mkdir -p /results/cts-runner/\$RCR_CTS_RUNNER_TYPE-\$TIMESTAMP; INTEL_PRECISE_TRIG=1 vblank_mode=0 ./cts-runner --type=\$RCR_CTS_RUNNER_TYPE --logdir=/results/cts-runner/\$RCR_CTS_RUNNER_TYPE-\$TIMESTAMP;"
+    RCR_DOCKER_RUN_COMMAND="$RCR_DOCKER_RUN_COMMAND cd /home/mesa/vk-gl-cts_build/external/openglcts/modules/; mkdir -p /results/cts-runner/\$RCR_CTS_RUNNER_TYPE-\$TIMESTAMP; INTEL_PRECISE_TRIG=1 vblank_mode=0 ./cts-runner --type=\$RCR_CTS_RUNNER_TYPE --logdir=/results/cts-runner/\$RCR_CTS_RUNNER_TYPE-\$TIMESTAMP;"
 fi
 
 docker pull "$RCR_DOCKER_REPOSITORY":"$RCR_DOCKER_TAG" && \
     docker run --privileged --rm -t -v $HOME/ci/piglit-results/:/results:Z \
-           -v $HOME/docker-ssh:/home/local/.ssh:Z \
-           -v $HOME/.ccache:/home/local/.ccache:Z \
+           -v $HOME/docker-ssh:/home/mesa/.ssh:Z \
+           -v $HOME/.ccache:/home/mesa/.ccache:Z \
            -e RCR_CTS_RUNNER_TYPE="$RCR_CTS_RUNNER_TYPE" \
            -e DISPLAY=unix"$DISPLAY" \
            -v /tmp/.X11-unix:/tmp/.X11-unix \
