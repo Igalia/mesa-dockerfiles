@@ -115,8 +115,10 @@ fi
 
 RCR_DOCKER_TAG="gl-cts-testing-opengl-cts-4-6-0__gl-cts-testing-$1"
 
+RCR_RENDERGROUP=$(stat -c '%g' /dev/dri/renderD128)
+
 if [ x$2 != "xpiglit" ]; then
-    RCR_DOCKER_RUN_COMMAND="$RCR_DOCKER_RUN_COMMAND cd /home/mesa/vk-gl-cts_build/external/openglcts/modules/; mkdir -p /results/cts-runner/\$RCR_CTS_RUNNER_TYPE-\$TIMESTAMP; INTEL_PRECISE_TRIG=1 vblank_mode=0 ./cts-runner --type=\$RCR_CTS_RUNNER_TYPE --logdir=/results/cts-runner/\$RCR_CTS_RUNNER_TYPE-\$TIMESTAMP;"
+    RCR_DOCKER_RUN_COMMAND="$RCR_DOCKER_RUN_COMMAND cd /home/mesa/vk-gl-cts_build/external/openglcts/modules/; mkdir -p /results/cts-runner/\$RCR_CTS_RUNNER_TYPE-\$TIMESTAMP; sudo -E -g#\$RCR_RENDERGROUP ./cts-runner --type=\$RCR_CTS_RUNNER_TYPE --logdir=/results/cts-runner/\$RCR_CTS_RUNNER_TYPE-\$TIMESTAMP;"
 fi
 
 docker pull "$RCR_DOCKER_REPOSITORY":"$RCR_DOCKER_TAG" && \
@@ -124,6 +126,8 @@ docker pull "$RCR_DOCKER_REPOSITORY":"$RCR_DOCKER_TAG" && \
            -v $HOME/docker-ssh:/home/mesa/.ssh:Z \
            -v $HOME/.ccache:/home/mesa/.ccache:Z \
            -e RCR_CTS_RUNNER_TYPE="$RCR_CTS_RUNNER_TYPE" \
+           -e RCR_RENDERGROUP="$RCR_RENDERGROUP" \
            -e DISPLAY=unix"$DISPLAY" \
+           -e XDG_RUNTIME_DIR=/tmp \
            -v /tmp/.X11-unix:/tmp/.X11-unix \
            "$RCR_DOCKER_REPOSITORY":"$RCR_DOCKER_TAG" /bin/bash -c "$RCR_DOCKER_RUN_COMMAND"
