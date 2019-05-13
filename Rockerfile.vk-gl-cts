@@ -87,29 +87,9 @@ RUN git clone --depth 1 https://github.com/Igalia/piglit.git -b wip/agomez/dcbak
 
 ADD vk-gl-cts /home/mesa/vk-gl-cts
 
-ADD Vulkan-Headers /home/mesa/Vulkan-Headers
+RUN sudo chown -R mesa:mesa /home/mesa/vk-gl-cts
 
-ADD Vulkan-Loader /home/mesa/Vulkan-Loader
-
-RUN sudo chown -R mesa:mesa /home/mesa/vk-gl-cts /home/mesa/Vulkan-Headers /home/mesa/Vulkan-Loader
-
-RUN mkdir /home/mesa/vk-gl-cts/build /home/mesa/Vulkan-Headers/build /home/mesa/Vulkan-Loader/build
-
-WORKDIR /home/mesa/Vulkan-Headers/build
-
-RUN cmake ..           \
-  && cmake --build .   \
-  && sudo make install \
-  && sudo ldconfig     \
-  && sudo rm -fr /home/mesa/Vulkan-Headers
-
-WORKDIR /home/mesa/Vulkan-Loader/build
-
-RUN cmake .. -DBUILD_WSI_MIR_SUPPORT=OFF \
-  && cmake --build .                     \
-  && sudo make install                   \
-  && sudo ldconfig                       \
-  && sudo rm -fr /home/mesa/Vulkan-Loader
+RUN mkdir /home/mesa/vk-gl-cts/build
 
 WORKDIR /home/mesa/vk-gl-cts/build
 
